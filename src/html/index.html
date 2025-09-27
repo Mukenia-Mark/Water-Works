@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water-Works - Login</title>
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-header">
+        <h1>Water-Works</h1>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="loginSection">
+        <form id="loginForm">
+            <div class="login-form-group">
+                <label for="email">Email</label>
+                <input type="text" id="email" name="email" required autofocus>
+            </div>
+
+            <div class="login-form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <div class="switch-form">
+            <p>Don't have an account? <a href="#" id="switchToRegister">Sign Up</a></p>
+        </div>
+    </div>
+
+    <!-- Register Section -->
+    <div id="registerSection" style="display: none;">
+        <form id="registerForm">
+            <div class="login-form-group">
+                <label for="regUsername">Username</label>
+                <input type="text" id="regUsername" name="username" required>
+            </div>
+
+            <div class="login-form-group">
+                <label for="regEmail">Email</label>
+                <input type="email" id="regEmail" name="email" required>
+            </div>
+
+            <div class="login-form-group">
+                <label for="regPassword">Password</label>
+                <input type="password" id="regPassword" name="password" required>
+            </div>
+
+            <div class="login-form-group">
+                <label for="regConfirmPassword">Confirm Password</label>
+                <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+            </div>
+
+            <button type="submit" class="login-btn">Register</button>
+        </form>
+
+        <div class="switch-form">
+            <p>Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+        </div>
+    </div>
+
+    <div id="errorMsg" class="message" style="display: none"></div>
+</div>
+<script type="module">
+    import { checkAuth } from "../js/auth.js";
+
+    if (checkAuth()) {
+        window.location.href = 'customer-management.html';
+    }
+</script>
+<script type="module" src="../js/login.js"></script>
+</body>
+</html>

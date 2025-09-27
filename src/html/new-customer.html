@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water-Works - New Customer</title>
+    <link rel="stylesheet" href="../css/billing.css">
+</head>
+<body>
+<div class="container">
+    <div class="nav-bar">
+        <button id="backBtn" class="back-btn">Back</button>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+
+    <header>
+        <h1>New Customer</h1>
+        <p class="subtitle">Add a new customer to the system</p>
+    </header>
+
+    <div class="billing-form">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="newCustomerName">Name</label>
+                <input type="text" id="newCustomerName" placeholder="Enter Customer Name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="newCustomerContact">Contact</label>
+                <input type="tel" id="newCustomerContact" placeholder="Enter Customer Contact" required>
+            </div>
+
+            <div class="form-group">
+                <label for="newCustomerMeter">Meter Number</label>
+                <input type="number" id="newCustomerMeter" placeholder="Enter Meter Number" required>
+            </div>
+
+            <div class="form-group">
+                <label for="initialReading">Initial Meter Reading</label>
+                <input type="number" id="initialReading" placeholder="Enter initial reading" required>
+            </div>
+
+            <div class="form-group">
+                <label>Monthly Charge</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="minimumCharge" name="monthlyCharge" value="200" checked>
+                        <label for="minimumCharge">Minimum Charge (200)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="standingCharge" name="monthlyCharge" value="100">
+                        <label for="standingCharge">Standing Charge (100)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button id="clearBtn" class="clear-btn">Clear</button>
+            <button id="saveBtn" class="save-btn">Save Customer</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/new-customer.js"></script>
+</body>
+</html>

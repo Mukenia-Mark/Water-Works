@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water-Works</title>
+    <link rel="stylesheet" href="../css/customer-management.css">
+</head>
+<body>
+<div class="container">
+    <div class="nav-bar">
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+
+    <header>
+        <h1>Water-Works</h1>
+        <p class="subtitle">Welcome, <span id="userDisplay"></span></p>
+    </header>
+
+    <div class="action-buttons">
+        <button id="newCustomerBtn" class="action-btn">
+            <span class="icon">➕</span>
+            <span>New Customer</span>
+        </button>
+        <button id="billingBtn" class="action-btn">
+            <span class="icon">💰</span>
+            <span>Bill Customer</span>
+        </button>
+    </div>
+
+    <div class="customer-management">
+        <div class="search-section">
+            <input type="text" class="search-box" id="searchInput" placeholder="Search customers by name or meter number...">
+            <button class="search-btn" id="searchBtn">Search</button>
+        </div>
+
+        <table class="customers-table" id="customersTable">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Meter Number</th>
+                <th>Monthly Charge</th>
+                <th>Last Reading</th>
+                <th>Last Reading Date</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="customersTableBody">
+            <!-- Customers will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="no-customers" id="noCustomersMessage" style="display: none;">
+            <p>No customers found. <a href="../html/new-customer.html">Add a new customer</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Details Modal -->
+<div id="customerModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Customer Details</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div id="customerDetails">
+            <!-- Customer details will be populated here -->
+        </div>
+        <div id="billingHistory">
+            <h3>Billing History</h3>
+            <div id="billingHistoryContent">
+                <!-- Billing history will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/customer-management.js"></script>
+</body>
+</html>
