@@ -2,7 +2,7 @@ import {
   requireAuth,
   logout,
   getCustomers,
-  saveCustomers,
+  updateCustomer,
   getTodayDateForInput
 } from './auth.js';
 
@@ -31,36 +31,41 @@ document.addEventListener('DOMContentLoaded', function() {
   readingDateInput.value = getTodayDateForInput();
 
   // Autofill previous reading when meter number is entered
-  customerMeterInput.addEventListener('blur', function() {
+  customerMeterInput.addEventListener('blur', async function() {
     const meterNumber = this.value;
 
     if (meterNumber) {
-      const customers = getCustomers();
-      const customer = customers.find(c => c.meterNumber === meterNumber);
+      try {
+        const customers = await getCustomers();
+        const customer = customers.find(c => c.meterNumber === meterNumber);
 
-      if (customer) {
-        customerNameInput.value = customer.name;
-        monthlyChargeInput.value = customer.monthlyCharge;
-        // Use last reading if available, otherwise use initial reading
-        const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
-          ? customer.billingHistory[customer.billingHistory.length - 1]
-          : null;
+        if (customer) {
+          customerNameInput.value = customer.name;
+          monthlyChargeInput.value = customer.monthlyCharge;
+          // Use last reading if available, otherwise use initial reading
+          const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
+            ? customer.billingHistory[customer.billingHistory.length - 1]
+            : null;
 
-        if (lastBilling) {
-          previousReadingInput.value = lastBilling.currentReading;
-          previousReadingDateSpan.textContent = `Last reading date: ${lastBilling.date}`;
-        } else if (customer.lastReading) {
-          previousReadingInput.value = customer.lastReading;
-          previousReadingDateSpan.textContent = `Initial reading date: ${customer.lastReadingDate}`;
+          if (lastBilling) {
+            previousReadingInput.value = lastBilling.currentReading;
+            previousReadingDateSpan.textContent = `Last reading date: ${lastBilling.date}`;
+          } else if (customer.lastReading) {
+            previousReadingInput.value = customer.lastReading;
+            previousReadingDateSpan.textContent = `Initial reading date: ${customer.lastReadingDate}`;
+          } else {
+            previousReadingInput.value = '';
+            previousReadingDateSpan.textContent = 'No previous reading found';
+          }
         } else {
+          customerNameInput.value = '';
+          monthlyChargeInput.value = '';
           previousReadingInput.value = '';
-          previousReadingDateSpan.textContent = 'No previous reading found';
+          previousReadingDateSpan.textContent = 'Customer not found';
         }
-      } else {
-        customerNameInput.value = '';
-        monthlyChargeInput.value = '';
-        previousReadingInput.value = '';
-        previousReadingDateSpan.textContent = 'Customer not found';
+      } catch (error) {
+        console.error('Error loading customer:', error);
+        alert('Error loading customer data');
       }
     }
   });
@@ -73,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
     previousReadingDateSpan.textContent = '';
     currentReadingInput.value = '';
     customerNameInput.value = '';
+    monthlyChargeInput.value = '';
   });
 
   function validateMeterReading(reading) {
@@ -86,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Save billing record functionality
-  document.getElementById('saveBtn').addEventListener('click', function() {
+  document.getElementById('saveBtn').addEventListener('click', async function() {
     const meterNumber = customerMeterInput.value;
     const readingDate = readingDateInput.value;
     const previousReading = previousReadingInput.value;
@@ -110,67 +116,71 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Get existing customers
-      const customers = getCustomers();
+      try {
+        // Get existing customers
+        const customers = await getCustomers();
 
-      // Find customer by meter number
-      const customerIndex = customers.findIndex(customer =>
-        customer.meterNumber === meterNumber
-      );
+        // Find customer by meter number
+        const customerIndex = customers.findIndex(customer =>
+          customer.meterNumber === meterNumber
+        );
 
-      if (customerIndex === -1) {
-        alert('Customer with this meter number not found!');
-        return;
+        if (customerIndex === -1) {
+          alert('Customer with this meter number not found!');
+          return;
+        }
+
+        const customer = customers[customerIndex];
+
+        // Calculate consumption (units used)
+        const consumption = currReading - prevReading;
+
+        // Calculate total charge
+        const totalCost = (consumption * unitCost) + monthlyCharge;
+
+        // Create billing record
+        const billingRecord = {
+          date: readingDate,
+          previousReading: prevReading,
+          currentReading: currReading,
+          consumption: consumption,
+          unitCost: unitCost,
+          monthlyCharge: monthlyCharge,
+          totalCost: totalCost
+        };
+
+        // Add to customer's billing history
+        let billingHistory = customer.billingHistory || [];
+        billingHistory.push(billingRecord);
+
+        // Update customer in Supabase
+        await updateCustomer(customer.id, {
+          last_reading: currReading,
+          last_reading_date: readingDate,
+          billing_history: billingHistory
+        });
+
+        // Ask if user wants to send via whatsapp
+        const sendWhatsApp = confirm(`Billing record saved successfully!\nUnits Used: ${consumption}\n\nWould you like to send the receipt via WhatsApp?`);
+
+        if (sendWhatsApp) {
+          const message = generateWhatsAppMessage(customer, billingRecord);
+          sendWhatsAppMessage(customer.contact, message);
+        }
+
+        // Clear form
+        customerMeterInput.value = '';
+        readingDateInput.value = '';
+        previousReadingInput.value = '';
+        previousReadingDateSpan.textContent = '';
+        currentReadingInput.value = '';
+        customerNameInput.value = '';
+        monthlyChargeInput.value = '';
+
+      } catch(error) {
+        console.error('Error saving billing record:', error);
+        alert('Error saving billing record: ' + error.message);
       }
-
-      // Calculate consumption (units used)
-      const consumption = currReading - prevReading;
-
-      // Calculate total charge
-      const totalCost = (consumption * unitCost) + (monthlyCharge);
-
-      // Create billing record
-      const billingRecord = {
-        date: readingDate,
-        previousReading: prevReading,
-        currentReading: currReading,
-        consumption: consumption,
-        unitCost: unitCost,
-        monthlyCharge: monthlyCharge,
-        totalCost: totalCost
-      };
-
-      // Add to customer's billing history
-      if (!customers[customerIndex].billingHistory) {
-        customers[customerIndex].billingHistory = [];
-      }
-
-      customers[customerIndex].billingHistory.push(billingRecord);
-
-      // Update customer's last reading
-      customers[customerIndex].lastReading = currReading;
-      customers[customerIndex].lastReadingDate = readingDate;
-
-      // Save back to localStorage
-      saveCustomers(customers);
-
-      // Ask if user wants to send via whatsapp
-      const sendWhatsApp = confirm(`Billing record saved successfully!\nUnits Used: ${consumption}\n\nWould you like to send the receipt via WhatsApp?`);
-
-      if (sendWhatsApp) {
-        const message = generateWhatsAppMessage(customers[customerIndex], billingRecord);
-        sendWhatsAppMessage(customers[customerIndex].contact, message);
-      }
-
-      // Clear form
-      customerMeterInput.value = '';
-      readingDateInput.value = '';
-      previousReadingInput.value = '';
-      previousReadingDateSpan.textContent = '';
-      currentReadingInput.value = '';
-      customerNameInput.value = '';
-      monthlyChargeInput.value = '';
-
     } else {
       alert('Please fill in all required fields!');
     }

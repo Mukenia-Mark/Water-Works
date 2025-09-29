@@ -182,7 +182,7 @@ function getCurrentUser() {
 }
 
 // Customer management functions (localStorage fallback)
-function getCustomers() {
+async function getCustomers() {
   const userId = localStorage.getItem('userId');
   if (!userId) {
     console.log('No user ID found');
@@ -190,24 +190,104 @@ function getCustomers() {
   }
 
   try {
-    const customers = localStorage.getItem(`customers_${userId}`);
-    console.log('Retrieved customers:', customers);
-    return customers ? JSON.parse(customers) : [];
+    const { data, error } = await supabase
+        .from('customers')
+        .select("")
+        .eq("user_id", userId)
+        .order("createdAt", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting customers:', error);
     return [];
   }
 }
 
-function saveCustomers(customers) {
+async function saveCustomers(customers) {
   const userId = localStorage.getItem('userId');
   if (!userId) throw new Error('User not authenticated!');
 
   try {
-    localStorage.setItem(`customers_${userId}`, JSON.stringify(customers));
-    return true;
+      console.warn('saveCustomers called - consider using specific CRUD functions instead');
+      return true;
   } catch (error) {
     console.error('Error saving customers:', error);
+    throw error;
+  }
+}
+
+async function createCustomer(customerData) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) throw new Error('User not authenticated!');
+
+    try {
+        const { data, error } = await supabase
+            .from('customers')
+            .insert([
+                {
+                    user_id: userId,
+                    name: customerData.name,
+                    contact: customerData.contact,
+                    meter_number: customerData.meter_number,
+                    monthly_charge: customerData.monthly_charge,
+                    last_reading: customerData.last_reading,
+                    last_reading_date: customerData.last_reading_date,
+                    billing_history: customerData.billing_history || []
+                }
+            ])
+            .select();
+
+        if (error) throw error;
+        return data[0];
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw error;
+    }
+}
+
+async function updateCustomer(customerId, updates) {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .update(updates)
+      .eq("id", customerId)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+}
+
+async function deleteCustomer(customerId) {
+  try {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', customerId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    throw error;
+  }
+}
+
+async function deleteCustomerById(customerId) {
+  try {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', customer.id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
     throw error;
   }
 }
@@ -263,6 +343,10 @@ export {
   getCurrentUser,
   getCustomers,
   saveCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+  deleteCustomerById,
   formatDate,
   getTodayDate,
   getTodayDateForInput

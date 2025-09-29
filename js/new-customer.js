@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Save customer functionality
-  document.getElementById('saveBtn').addEventListener('click', function() {
+  document.getElementById('saveBtn').addEventListener('click', async function() {
     const name = document.getElementById('newCustomerName').value;
     const contact = document.getElementById('newCustomerContact').value;
     const meterNumber = document.getElementById('newCustomerMeter').value;
@@ -36,43 +36,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthlyCharge = document.querySelector('input[name="monthlyCharge"]:checked').value;
 
     if (name && contact && meterNumber && initialReading) {
-      // Get existing customers or initialize empty array
-      const customers = getCustomers();
+      try {
+        // Check if meter number already exists
+        const customers = await getCustomers();
+        if (customers.some(customer => customer.meter_number === meterNumber)) {
+          alert('A customer with this meter number already exists!');
+          return;
+        }
 
-      // Check if meter number already exists
-      if (customers.some(customer => customer.meterNumber === meterNumber)) {
-        alert('A customer with this meter number already exists!');
-        return;
+        // Create new customer object
+        const newCustomer = {
+          name: name,
+          contact: contact,
+          meterNumber: meterNumber,
+          monthlyCharge: parseInt(monthlyCharge),
+          lastReading: parseInt(initialReading),
+          lastReadingDate: getTodayDate(), // Today's date in dd/mm/yyyy
+          billingHistory: [] // Initialize empty billing history
+        };
+
+        // Save to Supabase
+        await createCustomer(newCustomer);
+
+        alert('Customer added successfully with initial reading!');
+
+        // Clear form
+        document.getElementById('newCustomerName').value = '';
+        document.getElementById('newCustomerContact').value = '';
+        document.getElementById('newCustomerMeter').value = '';
+        document.getElementById('initialReading').value = '';
+        document.getElementById('minimumCharge').checked = true;
+
+        // Redirect to customer management page
+        window.location.href = 'customer-management.html';
+      } catch (error) {
+        alert("Error creating customer: " + error.message);
       }
-
-      // Create new customer object with initial reading
-      const newCustomer = {
-        name: name,
-        contact: contact,
-        meterNumber: meterNumber,
-        monthlyCharge: monthlyCharge,
-        lastReading: parseInt(initialReading),
-        lastReadingDate: getTodayDate(), // Today's date in dd/mm/yyyy
-        billingHistory: [] // Initialize empty billing history
-      };
-
-      // Add to customers array
-      customers.push(newCustomer);
-
-      // Save back to localStorage
-      saveCustomers(customers);
-
-      alert('Customer added successfully with initial reading!');
-
-      // Clear form
-      document.getElementById('newCustomerName').value = '';
-      document.getElementById('newCustomerContact').value = '';
-      document.getElementById('newCustomerMeter').value = '';
-      document.getElementById('initialReading').value = '';
-      document.getElementById('minimumCharge').checked = true;
-
-      // Redirect to customer management page
-      window.location.href = 'customer-management.html';
     } else {
       alert('Please fill in all required fields!');
     }

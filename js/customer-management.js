@@ -6,6 +6,7 @@ import {
   formatDate,
   getCurrentUser
 } from './auth.js';
+import supabase from './supabase.js';
 
 // Customer management page functionality (now the home page)
 document.addEventListener('DOMContentLoaded', function() {
@@ -104,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!customer) return;
 
-    const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
-      ? customer.billingHistory[customer.billingHistory.length - 1]
+    const lastBilling = customer.billing_history && customer.billing_history.length > 0
+      ? customer.billing_history[customer.billing_history.length - 1]
       : null;
 
     if (!lastBilling) {
@@ -120,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Load customers on page load
   loadCustomers();
 
-  function loadCustomers() {
-    const customers = getCustomers();
+  async function loadCustomers() {
+    const customers = await getCustomers();
     displayCustomers(customers);
   }
 
@@ -172,8 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
       row.innerHTML = `
                 <td>${sanitizeHTML(customer.name)}</td>
                 <td>${sanitizeHTML(customer.contact)}</td>
-                <td>${sanitizeHTML(customer.meterNumber)}</td>
-                <td>${sanitizeHTML(customer.monthlyCharge)}</td>
+                <td>${sanitizeHTML(customer.meter_number)}</td>
+                <td>${sanitizeHTML(customer.monthly_charge)}</td>
                 <td>${sanitizeHTML(lastReading || 'No reading')}</td>
                 <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
                 <td class="actions">
@@ -237,11 +238,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Meter Number:</span>
-                        <span class="detail-value">${customer.meterNumber}</span>
+                        <span class="detail-value">${customer.meter_number}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Monthly Charge:</span>
-                        <span class="detail-value">${customer.monthlyCharge}</span>
+                        <span class="detail-value">${customer.monthly_charge}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Last Reading:</span>
@@ -362,8 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Add the saveCustomerEdits function
-  function saveCustomerEdits(index) {
-    const customers = getCustomers();
+  async function saveCustomerEdits(index) {
+    const customers = await getCustomers();
     const customer = customers[index];
 
     if (!customer) return;
@@ -378,34 +379,41 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Update customer details
-    customer.name = newName;
-    customer.contact = newContact;
-    customer.monthlyCharge = newMonthlyCharge;
+    try {
+      await updateCustomer(customer.id, {
+        name: newName,
+        contact: newContact,
+        monthly_charge: parseInt(newMonthlyCharge)
+      });
 
-    // Save changes
-    saveCustomers(customers);
+      // Show success message
+      alert("Customer details updated successfully!");
 
-    // Show success message
-    alert('Customer details updated successfully!');
+      // Reload the customer details view
+      await viewCustomerDetails(index);
 
-    // Reload the customer details view
-    viewCustomerDetails(index);
-
-    // Refresh the customer list to reflect changes
-    loadCustomers();
-  }
-
-  function deleteCustomer(index) {
-    if (
-      confirm(
-        'Are you sure you want to delete this customer? This action cannot be undone.',
-      )
-    ) {
-      const customers = getCustomers();
-      customers.splice(index, 1);
-      saveCustomers(customers);
-      loadCustomers(); // Refresh the list
+      // Refresh the customer list to reflect changes
+      await loadCustomers();
+    } catch (error) {
+      alert('Error updating customer:' + error.message);
     }
   }
+
+  async function deleteCustomer(index) {
+    const customers = await getCustomers();
+    const customer = customers[index];
+
+    if (!customer) return;
+
+    if (confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+      try {
+        await deleteCustomerById(customer.id);
+        await loadCustomers(); // Refresh the list
+      } catch (error) {
+        alert('Error deleting customer!' + error.message);
+      }
+    }
+  }
+
+
 });
