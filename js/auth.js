@@ -1,6 +1,5 @@
 // auth.js - Supabase authentication
 import supabase from './supabase.js';
-import { k } from 'vite/dist/node/types.d-aGj9QkWt.js';
 
 let currentUser = null;
 const failedAttempts = new Map();
