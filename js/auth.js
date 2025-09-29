@@ -6,6 +6,19 @@ const failedAttempts = new Map();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_TIME = 15 * 60 * 1000;
 
+function sanitizeInput(input) {
+  if (typeof input !== "string") return input;
+
+  return input
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .replace(/\\/g, '&#x5C;')
+    .replace(/`/g, '&#96;');
+}
+
 // Initialize auth state
 async function initAuth() {
   try {
