@@ -70,3 +70,5 @@ jspm_packages/
 # Build outputs
 dist/
 build/
+
+vite.config.js
