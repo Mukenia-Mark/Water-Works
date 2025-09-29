@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   build: {
@@ -9,9 +10,11 @@ export default defineConfig({
         newCustomer: 'new-customer.html',
         billing: 'bill-customer.html'
       }
-    }
+    },
+    outDir: 'dist'
   },
   server: {
     port: 3000
-  }
+  },
+  publicDir: false
 });
