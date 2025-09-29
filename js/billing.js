@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         billingHistory.push(billingRecord);
 
         // Update customer in Supabase
-        await updateCustomer(customer.id, {
+        await updateCustomer(customers[customerIndex].id, {
           last_reading: currReading,
           last_reading_date: readingDate,
           billing_history: billingHistory

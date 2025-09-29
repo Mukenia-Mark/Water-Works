@@ -4,7 +4,9 @@ import {
   getCustomers,
   saveCustomers,
   formatDate,
-  getCurrentUser
+  getCurrentUser,
+  deleteCustomerById,
+  updateCustomer,
 } from './auth.js';
 import supabase from './supabase.js';
 
@@ -117,9 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const message = generateWhatsAppMessage(customer, lastBilling);
     sendWhatsAppMessage(customer.contact, message);
   }
-
-  // Load customers on page load
-  loadCustomers();
 
   async function loadCustomers() {
     const customers = await getCustomers();
@@ -415,5 +414,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-
+  // Load customers on page load
+  loadCustomers();
 });

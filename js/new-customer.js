@@ -2,7 +2,7 @@ import {
   requireAuth,
   logout,
   getCustomers,
-  saveCustomers,
+  createCustomer,
   getTodayDate
 } from './auth.js';
 
