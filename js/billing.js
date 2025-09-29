@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Navigation functionality
   document.getElementById('backBtn').addEventListener('click', function() {
-    window.location.href = '../html/customer-management.html';
+    window.location.href = 'customer-management.html';
   });
 
   document.getElementById('logoutBtn').addEventListener('click', logout);

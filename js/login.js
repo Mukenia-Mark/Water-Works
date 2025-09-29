@@ -2,7 +2,7 @@ import {checkAuth, login, register } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", function() {
     if (checkAuth()) {
-        window.location.href="../html/customer-management.html";
+        window.location.href="customer-management.html";
         return;
     }
 
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (result.success) {
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href="../html/customer-management.html";
+                    window.location.href="customer-management.html";
                 }, 1000);
             } else {
                 showMessage(result.error, 'error');

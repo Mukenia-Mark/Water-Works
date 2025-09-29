@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Navigation functionality
   document.getElementById('backBtn').addEventListener('click', function() {
-    window.location.href = '../html/customer-management.html';
+    window.location.href = 'customer-management.html';
   });
 
   document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('minimumCharge').checked = true;
 
       // Redirect to customer management page
-      window.location.href = '../html/customer-management.html';
+      window.location.href = 'customer-management.html';
     } else {
       alert('Please fill in all required fields!');
     }

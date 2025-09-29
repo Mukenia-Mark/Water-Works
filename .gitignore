@@ -29,18 +29,17 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Supabase configuration file (contains sensitive API keys)
-src/js/supabase.js
-
 # Node.js dependencies
 node_modules/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+!.env.example
 
 
 # IDE files

@@ -9,7 +9,7 @@
                style-src 'self' 'unsafe-inline';
                connect-src 'self' https://bhnyabnvhhgshkzjduvr.supabase.co https://wa.me;">
     <title>Water-Works - Login</title>
-    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
 <div class="login-container">
@@ -72,12 +72,12 @@
     <div id="errorMsg" class="message" style="display: none"></div>
 </div>
 <script type="module">
-    import { checkAuth } from "../js/auth.js";
+    import { checkAuth } from "js/auth.js";
 
     if (checkAuth()) {
         window.location.href = 'customer-management.html';
     }
 </script>
-<script type="module" src="../js/login.js"></script>
+<script type="module" src="js/login.js"></script>
 </body>
 </html>

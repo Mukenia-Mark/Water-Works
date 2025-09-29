@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('logoutBtn').addEventListener('click', logout);
 
   document.getElementById('newCustomerBtn').addEventListener('click', function() {
-    window.location.href = '../html/new-customer.html';
+    window.location.href = 'new-customer.html';
   });
 
   document.getElementById('billingBtn').addEventListener('click', function() {
-    window.location.href = '../html/bill-customer.html';
+    window.location.href = 'bill-customer.html';
   });
 
   // DOM elements
