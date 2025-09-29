@@ -251,7 +251,7 @@ async function createCustomer(customerData) {
 async function updateCustomer(customerId, updates) {
   try {
     const dbUpdates = {};
-    Objects.keys(updates).forEach((key) => {
+    Object.keys(updates).forEach((key) => {
       if (key === "billingHistory") {
         dbUpdates.billing_history = updates[key];
       } else if (key === "lastReading") {
@@ -301,7 +301,7 @@ async function deleteCustomerById(customerId) {
     const { error } = await supabase
       .from('customers')
       .delete()
-      .eq('id', customer.id);
+      .eq('id', customerId);
 
     if (error) throw error;
     return true;
