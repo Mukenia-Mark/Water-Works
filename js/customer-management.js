@@ -2,7 +2,6 @@ import {
   requireAuth,
   logout,
   getCustomers,
-  saveCustomers,
   formatDate,
   getCurrentUser,
   deleteCustomerById,
@@ -67,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const message = `💧 *Water Bill Receipt* 💧
     
     *Customer:* ${customer.name}
-    *Meter No:* ${customer.meterNumber}
+    *Meter No:* ${customer.meter_number}
     *Bill Date:* ${formatDate(latestBilling.date)}
     
     *Meter Readings:*
@@ -162,12 +161,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const row = document.createElement('tr');
 
       // Get last reading info
-      const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
-        ? customer.billingHistory[customer.billingHistory.length - 1]
+      const lastBilling = customer.billing_history && customer.billing_history.length > 0
+        ? customer.billing_history[customer.billing_history.length - 1]
         : null;
 
-      const lastReading = lastBilling ? lastBilling.currentReading : customer.lastReading;
-      const lastReadingDate = lastBilling ? formatDate(lastBilling.date) : formatDate(customer.lastReadingDate);
+      const lastReading = lastBilling ? lastBilling.currentReading : customer.last_reading;
+      const lastReadingDate = lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date);
 
       row.innerHTML = `
                 <td>${sanitizeHTML(customer.name)}</td>
@@ -219,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.currentCustomerIndex = index;
 
     // Get last reading info
-    const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
-      ? customer.billingHistory[customer.billingHistory.length - 1]
+    const lastBilling = customer.billing_history && customer.billing_history.length > 0
+      ? customer.billing_history[customer.billing_history.length - 1]
       : null;
 
     // Populate customer details
@@ -245,11 +244,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Last Reading:</span>
-                        <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.lastReading || 'No reading'}</span>
+                        <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Last Reading Date:</span>
-                        <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.lastReadingDate) || 'No date'}</span>
+                        <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date) || 'No date'}</span>
                     </div>
                 </div>
                 <div class="customer-actions" style="margin-top: 20px; text-align: center;">

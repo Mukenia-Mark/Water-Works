@@ -37,22 +37,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (meterNumber) {
       try {
         const customers = await getCustomers();
-        const customer = customers.find(c => c.meterNumber === meterNumber);
+        const customer = customers.find(c => c.meter_number === meterNumber);
 
         if (customer) {
           customerNameInput.value = customer.name;
-          monthlyChargeInput.value = customer.monthlyCharge;
+          monthlyChargeInput.value = customer.monthly_charge;
           // Use last reading if available, otherwise use initial reading
-          const lastBilling = customer.billingHistory && customer.billingHistory.length > 0
-            ? customer.billingHistory[customer.billingHistory.length - 1]
+          const lastBilling = customer.billing_history && customer.billing_history.length > 0
+            ? customer.billing_history[customer.billing_history.length - 1]
             : null;
 
           if (lastBilling) {
             previousReadingInput.value = lastBilling.currentReading;
             previousReadingDateSpan.textContent = `Last reading date: ${lastBilling.date}`;
-          } else if (customer.lastReading) {
-            previousReadingInput.value = customer.lastReading;
-            previousReadingDateSpan.textContent = `Initial reading date: ${customer.lastReadingDate}`;
+          } else if (customer.last_reading) {
+            previousReadingInput.value = customer.last_reading;
+            previousReadingDateSpan.textContent = `Initial reading date: ${customer.last_reading_date}`;
           } else {
             previousReadingInput.value = '';
             previousReadingDateSpan.textContent = 'No previous reading found';
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Find customer by meter number
         const customerIndex = customers.findIndex(customer =>
-          customer.meterNumber === meterNumber
+          customer.meter_number === meterNumber
         );
 
         if (customerIndex === -1) {
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // Add to customer's billing history
-        let billingHistory = customer.billingHistory || [];
+        let billingHistory = customer.billing_history || [];
         billingHistory.push(billingRecord);
 
         // Update customer in Supabase
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function generateWhatsAppMessage(customer, billingRecord) {
     const message = `💧 *Water Bill Receipt* 💧
       *Customer:* ${customer.name}
-      *Meter No:* ${customer.meterNumber}
+      *Meter No:* ${customer.meter_number}
       *Bill Date:* ${billingRecord.date}
       
       *Meter Readings:*

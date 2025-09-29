@@ -1,5 +1,6 @@
 // auth.js - Supabase authentication
 import supabase from './supabase.js';
+import { k } from 'vite/dist/node/types.d-aGj9QkWt.js';
 
 let currentUser = null;
 const failedAttempts = new Map();
@@ -27,6 +28,8 @@ async function initAuth() {
       currentUser = session.user;
       localStorage.setItem('userId', session.user.id);
       localStorage.setItem('username', session.user.user_metadata?.username || session.user.email);
+
+      await checkCustomerSchema();
     }
   } catch (error) {
     console.error('Auth init error:', error);
@@ -194,7 +197,7 @@ async function getCustomers() {
         .from('customers')
         .select("")
         .eq("user_id", userId)
-        .order("createdAt", { ascending: false });
+        .order("created_at", { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -248,9 +251,26 @@ async function createCustomer(customerData) {
 
 async function updateCustomer(customerId, updates) {
   try {
+    const dbUpdates = {};
+    Objects.keys(updates).forEach((key) => {
+      if (key === "billingHistory") {
+        dbUpdates.billing_history = updates[key];
+      } else if (key === "lastReading") {
+        dbUpdates.last_reading = updates[key];
+      } else if (key === 'lastReadingDate') {
+        dbUpdates.last_reading_date = updates[key];
+      } else if (key === 'meterNumber') {
+        dbUpdates.meter_number = updates[key];
+      } else if (key === 'monthlyCharge') {
+        dbUpdates.monthly_charge = updates[key];
+      } else {
+        dbUpdates[key] = updates[key];
+      }
+    });
+
     const { data, error } = await supabase
       .from('customers')
-      .update(updates)
+      .update(dbUpdates)
       .eq("id", customerId)
       .select();
 
@@ -329,6 +349,27 @@ function getTodayDate() {
 
 function getTodayDateForInput() {
   return new Date().toISOString().split('T')[0];
+}
+
+// Debug database schema
+async function checkCustomerSchema() {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .limit(1);
+
+    if (error) {
+      console.error('Schema check failed:', error);
+      return false;
+    }
+
+    console.log('Database schema is accessible');
+    return true;
+  } catch (error) {
+    console.error('Schema check error:', error);
+    return false;
+  }
 }
 
 // Initialize auth when module loads
