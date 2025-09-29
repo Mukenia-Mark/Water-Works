@@ -1,9 +1,0 @@
-{
-  "name": "water-works",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "build": "mkdir -p dist && cp -r *.html css/ js/ dist/ && echo 'Build completed successfully'",
-    "dev": "echo 'Use: python3 -m http.server 3000 or npx serve .'"
-  }
-}
