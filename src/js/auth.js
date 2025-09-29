@@ -2,6 +2,9 @@
 import supabase from './supabase.js';
 
 let currentUser = null;
+const failedAttempts = new Map();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000;
 
 // Initialize auth state
 async function initAuth() {
@@ -31,11 +34,47 @@ function requireAuth() {
   return true;
 }
 
+// Input validation functions
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+  return password.length >= 6;
+}
+
 // Login function
 async function login(email, password) {
   try {
+    // Check if IP/email is locked out
+    const now = Date.now();
+    const attempt = failedAttempts.get(email);
+
+    if (attempt && attempt.count >= MAX_ATTEMPTS) {
+      if (now - attempt.lastAttempt < LOCKOUT_TIME) {
+        throw new Error(
+          'Too many failed attempts. Please try again in 15 minutes!',
+        );
+      } else {
+        // Reset after lockout time
+        failedAttempts.delete(email);
+      }
+    }
+
+    // Validates inputs
+    if (!validateEmail(email)) {
+      throw new Error('Please enter a valid email address!');
+    }
+
+    if (!validatePassword(password)) {
+      throw new Error('Password must be at least 6 characters long!');
+    }
+
+    const sanitizedEmail = sanitizeInput(email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
+      email: sanitizedEmail,
       password: password,
     });
 
@@ -44,14 +83,22 @@ async function login(email, password) {
     if (data.user) {
       currentUser = data.user;
       localStorage.setItem('userId', data.user.id);
-      localStorage.setItem('username', data.user.user_metadata?.username || data.user.email);
+      localStorage.setItem(
+        'username',
+        data.user.user_metadata?.username || data.user.email,
+      );
       localStorage.setItem('loginTime', new Date().toISOString());
 
       return { success: true, user: currentUser };
     }
   } catch (error) {
-    console.error('Login error:', error);
-    return { success: false, error: error.message };
+    // Track failed attempts
+    const attempt = failedAttempts.get(email) || { count: 0, lastAttempt: 0 };
+    attempt.count++;
+    attempt.lastAttempt = Date.now();
+    failedAttempts.set(email, attempt);
+
+    throw error;
   }
 }
 

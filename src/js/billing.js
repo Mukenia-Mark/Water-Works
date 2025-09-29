@@ -75,6 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
     customerNameInput.value = '';
   });
 
+  function validateMeterReading(reading) {
+    const num = parseInt(reading);
+    return !isNaN(num) && num >= 0 && num <= 999999;
+  }
+
+  function validatePhoneNumber(phone) {
+    const phoneRegex = /^[0-9+\-\s()]{10,}$/;
+    return phoneRegex.test(phone);
+  }
+
   // Save billing record functionality
   document.getElementById('saveBtn').addEventListener('click', function() {
     const meterNumber = customerMeterInput.value;
@@ -84,6 +94,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const unitCost = 0.1;
     const monthlyCharge = parseInt(monthlyChargeInput.value);
 
+
+    if (!validateMeterReading(currentReading)) {
+      alert('Please enter valid meter reading (0 - 999999)');
+      return;
+    }
 
     if (meterNumber && readingDate && previousReading && currentReading) {
       // Validate readings

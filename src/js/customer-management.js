@@ -141,6 +141,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function displayCustomers(customers) {
     customersTableBody.innerHTML = '';
 
@@ -163,12 +169,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const lastReadingDate = lastBilling ? formatDate(lastBilling.date) : formatDate(customer.lastReadingDate);
 
       row.innerHTML = `
-                <td>${customer.name}</td>
-                <td>${customer.contact}</td>
-                <td>${customer.meterNumber}</td>
-                <td>${customer.monthlyCharge}</td>
-                <td>${lastReading || 'No reading'}</td>
-                <td>${lastReadingDate || 'No date'}</td>
+                <td>${sanitizeHTML(customer.name)}</td>
+                <td>${sanitizeHTML(customer.contact)}</td>
+                <td>${sanitizeHTML(customer.meterNumber)}</td>
+                <td>${sanitizeHTML(customer.monthlyCharge)}</td>
+                <td>${sanitizeHTML(lastReading || 'No reading')}</td>
+                <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
                 <td class="actions">
                     <button class="view-btn" data-index="${index}">View</button>
                     <button class="whatsapp-btn" data-index="${index}">WhatsApp</button>
