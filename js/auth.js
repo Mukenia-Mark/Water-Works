@@ -4,7 +4,7 @@ import supabase from './supabase.js';
 let currentUser = null;
 const failedAttempts = new Map();
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_TIME = 15 * 60 * 1000;
+const LOCKOUT_TIME = 60 * 1000;
 
 function sanitizeInput(input) {
   if (typeof input !== "string") return input;
