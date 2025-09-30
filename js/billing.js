@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const readingDate = readingDateInput.value;
     const previousReading = previousReadingInput.value;
     const currentReading = currentReadingInput.value;
-    const unitCost = 0.1;
+    const unitCost = 100;
     const monthlyCharge = parseInt(monthlyChargeInput.value);
 
 

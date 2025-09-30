@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(whatsappUrl, '_blank');
   }
 
-  function sendWhatsAppFromTable(index) {
-    const customers = getCustomers();
+  async function sendWhatsAppFromTable(index) {
+    const customers = await getCustomers();
     const customer = customers[index];
 
     if (!customer) return;
@@ -124,14 +124,14 @@ document.addEventListener('DOMContentLoaded', function() {
     displayCustomers(customers);
   }
 
-  function searchCustomers() {
+  async function searchCustomers() {
     const searchTerm = searchInput.value.toLowerCase();
-    const customers = getCustomers();
+    const customers = await getCustomers();
 
     if (searchTerm) {
       const filteredCustomers = customers.filter(customer =>
         customer.name.toLowerCase().includes(searchTerm) ||
-        customer.meterNumber.toString().includes(searchTerm) ||
+        customer.meter_number.toString().includes(searchTerm) ||
         customer.contact.includes(searchTerm)
       );
       displayCustomers(filteredCustomers);
@@ -208,8 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function viewCustomerDetails(index) {
-    const customers = getCustomers();
+  async function viewCustomerDetails(index) {
+    const customers = await getCustomers();
     const customer = customers[index];
 
     if (!customer) return;
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Populates billing history
-    const billingHistory = customer.billingHistory || [];
+    const billingHistory = customer.billing_history || [];
     let billingHTML = 'No Billing History';
 
     if (billingHistory.length === 0) {
@@ -335,8 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="form-group">
           <label for="editMonthlyCharge">Monthly Charge:</label>
           <select id="editMonthlyCharge" class="edit-input">
-            <option value="200" ${customer.monthlyCharge === 200 ? 'selected' : ''}>Minimum Charge (200)</option>
-            <option value="100" ${customer.monthlyCharge === 100 ? 'selected' : ''}>Standing Charge (100)</option> 
+            <option value="200" ${customer.monthly_charge === 200 ? 'selected' : ''}>Minimum Charge (200)</option>
+            <option value="100" ${customer.monthly_charge === 100 ? 'selected' : ''}>Standing Charge (100)</option> 
           </select>
         <div class="edit-actions" style="margin-top: 20px; text-align: center;">
                 <button id="saveEditBtn" class="save-btn" style="background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">Save Changes</button>

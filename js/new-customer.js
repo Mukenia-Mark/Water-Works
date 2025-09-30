@@ -48,11 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const newCustomer = {
           name: name,
           contact: contact,
-          meterNumber: meterNumber,
-          monthlyCharge: parseInt(monthlyCharge),
-          lastReading: parseInt(initialReading),
-          lastReadingDate: getTodayDate(), // Today's date in dd/mm/yyyy
-          billingHistory: [] // Initialize empty billing history
+          meter_number: meterNumber,
+          monthly_charge: parseInt(monthlyCharge),
+          last_reading: parseInt(initialReading),
+          last_reading_date: getTodayDate(), // Today's date in dd/mm/yyyy
+          billing_history: [] // Initialize empty billing history
         };
 
         // Save to Supabase
