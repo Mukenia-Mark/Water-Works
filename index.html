@@ -74,9 +74,11 @@
 <script type="module">
     import { checkAuth } from "/js/auth.js";
 
-    if (checkAuth()) {
-        window.location.href = 'customer-management.html';
-    }
+    setTimeout(() => {
+        if (checkAuth()) {
+            window.location.href = 'customer-management.html';
+        }
+    }, 200);
 </script>
 <script type="module" src="/js/login.js"></script>
 </body>

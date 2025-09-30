@@ -150,11 +150,16 @@ async function logout() {
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
+    // Clear local storage first
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('loginTime');
     currentUser = null;
-    window.location.href = 'index.html';
+
+    // Add a small delay to ensure cleanup completes before redirect
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 100);
   }
 }
 

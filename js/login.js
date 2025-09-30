@@ -1,10 +1,12 @@
 import {checkAuth, login, register } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", function() {
-    if (checkAuth()) {
+    // Add a small delay to ensure any pending logout cleanup completes
+    setTimeout(() => {
+      if (checkAuth()) {
         window.location.href="customer-management.html";
-        return;
-    }
+      }
+    }, 200);
 
     const loginForm = document.getElementById("loginForm");
     const errorMsg = document.getElementById("errorMsg");
