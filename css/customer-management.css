@@ -193,6 +193,10 @@ h1 {
     align-items: center;
 }
 
+.modal[style*="display: flex"] {
+    display: flex !important;
+}
+
 .modal-content {
     background: white;
     padding: 30px;

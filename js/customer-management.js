@@ -57,29 +57,77 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Whatsapp functionality functions
+  // Event delegation for all buttons
+  document.addEventListener('click', function(e) {
+    // WhatsApp button in modal
+    if (e.target && e.target.id === 'whatsappBtn') {
+      e.preventDefault();
+      sendWhatsAppFromModal();
+    }
+
+    // WhatsApp buttons in table
+    if (e.target && e.target.classList.contains('whatsapp-btn')) {
+      e.preventDefault();
+      const index = parseInt(e.target.getAttribute('data-index'));
+      sendWhatsAppFromTable(index);
+    }
+
+    // View buttons in table
+    if (e.target && e.target.classList.contains('view-btn')) {
+      e.preventDefault();
+      const index = parseInt(e.target.getAttribute('data-index'));
+      viewCustomerDetails(index);
+    }
+
+    // Delete buttons in table
+    if (e.target && e.target.classList.contains('delete-btn')) {
+      e.preventDefault();
+      const index = parseInt(e.target.getAttribute('data-index'));
+      deleteCustomer(index);
+    }
+
+    // Edit button in modal
+    if (e.target && e.target.id === 'editCustomerBtn') {
+      e.preventDefault();
+      editCustomerDetails(window.currentCustomerIndex);
+    }
+
+    // Save edit button in modal
+    if (e.target && e.target.id === 'saveEditBtn') {
+      e.preventDefault();
+      saveCustomerEdits(window.currentCustomerIndex);
+    }
+
+    // Cancel edit button in modal
+    if (e.target && e.target.id === 'cancelEditBtn') {
+      e.preventDefault();
+      viewCustomerDetails(window.currentCustomerIndex);
+    }
+  });
+
+  // WhatsApp functionality functions
   function generateWhatsAppMessage(customer, latestBilling) {
     if (!latestBilling) {
-      return`Hello ${customer.name}! Your water bill is ready.`;
+      return encodeURIComponent(`Hello ${customer.name}! Your water bill is ready.`);
     }
 
     const message = `💧 *Water Bill Receipt* 💧
     
-    *Customer:* ${customer.name}
-    *Meter No:* ${customer.meter_number}
-    *Bill Date:* ${formatDate(latestBilling.date)}
-    
-    *Meter Readings:*
-    - Previous: ${latestBilling.previousReading} units
-    - Current: ${latestBilling.currentReading} units
-    - Consumption: ${latestBilling.consumption} units
-    
-    *Charges:*
-    - Water Usage (${latestBilling.consumption} units x Ksh ${latestBilling.unitCost} per unit): Ksh ${(latestBilling.consumption * latestBilling.unitCost).toFixed(2)}
-    - Monthly Charge: Ksh ${latestBilling.monthlyCharge}
-    - *Total Amount Due: Ksh ${latestBilling.totalCost}*
-    
-    Please make your payment as soon as possible. Thank you!`;
+*Customer:* ${customer.name}
+*Meter No:* ${customer.meter_number}
+*Bill Date:* ${formatDate(latestBilling.date)}
+
+*Meter Readings:*
+- Previous: ${latestBilling.previousReading} units
+- Current: ${latestBilling.currentReading} units
+- Consumption: ${latestBilling.consumption} units
+
+*Charges:*
+- Water Usage (${latestBilling.consumption} units x Ksh ${latestBilling.unitCost} per unit): Ksh ${(latestBilling.consumption * latestBilling.unitCost).toFixed(2)}
+- Monthly Charge: Ksh ${latestBilling.monthlyCharge}
+- *Total Amount Due: Ksh ${latestBilling.totalCost}*
+
+Please make your payment as soon as possible. Thank you!`;
 
     return encodeURIComponent(message);
   }
@@ -90,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check if number has a country code, if not assume kenya (+254)
     let formattedPhone = cleanPhone;
-    if (!cleanPhone.startsWith('+254') && cleanPhone.length === 9) {
+    if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
       formattedPhone = '254' + cleanPhone;
     } else if (cleanPhone.length === 10 && cleanPhone.startsWith('0')) {
       formattedPhone = '254' + cleanPhone.substring(1);
@@ -100,11 +148,48 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(whatsappUrl, '_blank');
   }
 
-  async function sendWhatsAppFromTable(index) {
-    const customers = await getCustomers();
-    const customer = customers[index];
+  // Unified WhatsApp function for modal
+  async function sendWhatsAppFromModal() {
+    try {
+      const customers = await getCustomers();
+      const customer = customers[window.currentCustomerIndex];
 
-    if (!customer) return;
+      if (!customer) {
+        alert('Customer not found!');
+        return;
+      }
+
+      await sendCustomerWhatsApp(customer);
+    } catch (error) {
+      console.error('Error sending WhatsApp:', error);
+      alert('Error: ' + error.message);
+    }
+  }
+
+  // Unified WhatsApp function for table
+  async function sendWhatsAppFromTable(index) {
+    try {
+      const customers = await getCustomers();
+      const customer = customers[index];
+
+      if (!customer) {
+        alert('Customer not found!');
+        return;
+      }
+
+      await sendCustomerWhatsApp(customer);
+    } catch (error) {
+      console.error('Error sending WhatsApp:', error);
+      alert('Error: ' + error.message);
+    }
+  }
+
+  // Common WhatsApp sending logic
+  async function sendCustomerWhatsApp(customer) {
+    if (!customer.contact) {
+      alert('Customer contact information is missing!');
+      return;
+    }
 
     const lastBilling = customer.billing_history && customer.billing_history.length > 0
       ? customer.billing_history[customer.billing_history.length - 1]
@@ -169,42 +254,20 @@ document.addEventListener('DOMContentLoaded', function() {
       const lastReadingDate = lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date);
 
       row.innerHTML = `
-                <td>${sanitizeHTML(customer.name)}</td>
-                <td>${sanitizeHTML(customer.contact)}</td>
-                <td>${sanitizeHTML(customer.meter_number)}</td>
-                <td>${sanitizeHTML(customer.monthly_charge)}</td>
-                <td>${sanitizeHTML(lastReading || 'No reading')}</td>
-                <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
-                <td class="actions">
-                    <button class="view-btn" data-index="${index}">View</button>
-                    <button class="whatsapp-btn" data-index="${index}">WhatsApp</button>
-                    <button class="delete-btn" data-index="${index}">Delete</button>
-                </td>
-            `;
+        <td>${sanitizeHTML(customer.name)}</td>
+        <td>${sanitizeHTML(customer.contact)}</td>
+        <td>${sanitizeHTML(customer.meter_number)}</td>
+        <td>${sanitizeHTML(customer.monthly_charge)}</td>
+        <td>${sanitizeHTML(lastReading || 'No reading')}</td>
+        <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
+        <td class="actions">
+          <button class="view-btn" data-index="${index}">View</button>
+          <button class="whatsapp-btn" data-index="${index}">WhatsApp</button>
+          <button class="delete-btn" data-index="${index}">Delete</button>
+        </td>
+      `;
 
       customersTableBody.appendChild(row);
-    });
-
-    // Add event listeners to action buttons
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
-        viewCustomerDetails(index);
-      });
-    });
-
-    document.querySelectorAll('.whatsapp-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
-        sendWhatsAppFromTable(index);
-      });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
-        deleteCustomer(index);
-      });
     });
   }
 
@@ -224,89 +287,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Populate customer details
     document.getElementById('customerDetails').innerHTML = `
-            <div class="customer-details">
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Name:</span>
-                        <span class="detail-value">${customer.name}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Contact:</span>
-                        <span class="detail-value">${customer.contact}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Meter Number:</span>
-                        <span class="detail-value">${customer.meter_number}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Monthly Charge:</span>
-                        <span class="detail-value">${customer.monthly_charge}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Last Reading:</span>
-                        <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Last Reading Date:</span>
-                        <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date) || 'No date'}</span>
-                    </div>
-                </div>
-                <div class="customer-actions" style="margin-top: 20px; text-align: center;">
-                    <button id="editCustomerBtn" class="edit-btn">Edit Customer</button>
-                    <button id="whatsappBtn" class="modal-whatsapp-btn">Send via Whatsapp</button>
-                </div>
-            </div>
-        `;
+      <div class="customer-details">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Name:</span>
+            <span class="detail-value">${customer.name}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Contact:</span>
+            <span class="detail-value">${customer.contact}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Meter Number:</span>
+            <span class="detail-value">${customer.meter_number}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Monthly Charge:</span>
+            <span class="detail-value">${customer.monthly_charge}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Reading:</span>
+            <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Reading Date:</span>
+            <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date) || 'No date'}</span>
+          </div>
+        </div>
+        <div class="customer-actions" style="margin-top: 20px; text-align: center;">
+          <button id="editCustomerBtn" class="edit-btn">Edit Customer</button>
+          <button id="whatsappBtn" class="modal-whatsapp-btn">Send via Whatsapp</button>
+        </div>
+      </div>
+    `;
 
-    // Add event listener to edit button
-    document.getElementById('editCustomerBtn').addEventListener('click', function() {
-      editCustomerDetails(index);
-    });
-
-    // Add event listener to WhatsApp button
-    const whatsappBtn = document.getElementById('whatsappBtn');
-    if (whatsappBtn) {
-      whatsappBtn.addEventListener('click', function() {
-        const message = generateWhatsAppMessage(customer, lastBilling);
-        sendWhatsAppMessage(customer.contact, message);
-      });
-    }
-
-    // Populates billing history
+    // Populate billing history
     const billingHistory = customer.billing_history || [];
-    let billingHTML = 'No Billing History';
+    let billingHTML = '';
 
     if (billingHistory.length === 0) {
       billingHTML = '<p>No billing history available.</p>';
     } else {
       billingHTML = `
-                <table class="billing-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Previous Reading</th>
-                            <th>Current Reading</th>
-                            <th>Units Used</th>
-                            <th>Cost per Unit (Ksh)</th>
-                            <th>Monthly Cost (Ksh)</th>
-                            <th>Total Due (Ksh)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${billingHistory.map(billing => `
-                            <tr>
-                                <td>${formatDate(billing.date)}</td>
-                                <td>${billing.previousReading}</td>
-                                <td>${billing.currentReading}</td>
-                                <td>${billing.consumption}</td>
-                                <td>${billing.unitCost}</td>
-                                <td>${billing.monthlyCharge}</td>
-                                <td>${billing.totalCost}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        <table class="billing-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Previous Reading</th>
+              <th>Current Reading</th>
+              <th>Units Used</th>
+              <th>Cost per Unit (Ksh)</th>
+              <th>Monthly Cost (Ksh)</th>
+              <th>Total Due (Ksh)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${billingHistory.map(billing => `
+              <tr>
+                <td>${formatDate(billing.date)}</td>
+                <td>${billing.previousReading}</td>
+                <td>${billing.currentReading}</td>
+                <td>${billing.consumption}</td>
+                <td>${billing.unitCost}</td>
+                <td>${billing.monthlyCharge}</td>
+                <td>${billing.totalCost}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     }
 
     document.getElementById('billingHistoryContent').innerHTML = billingHTML;
@@ -315,8 +364,8 @@ document.addEventListener('DOMContentLoaded', function() {
     customerModal.style.display = 'flex';
   }
 
-  function editCustomerDetails(index) {
-    const customers = getCustomers();
+  async function editCustomerDetails(index) {
+    const customers = await getCustomers();
     const customer = customers[index];
 
     if (!customer) return;
@@ -338,29 +387,18 @@ document.addEventListener('DOMContentLoaded', function() {
             <option value="200" ${customer.monthly_charge === 200 ? 'selected' : ''}>Minimum Charge (200)</option>
             <option value="100" ${customer.monthly_charge === 100 ? 'selected' : ''}>Standing Charge (100)</option> 
           </select>
+        </div>
         <div class="edit-actions" style="margin-top: 20px; text-align: center;">
-                <button id="saveEditBtn" class="save-btn" style="background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">Save Changes</button>
-                <button id="cancelEditBtn" class="cancel-btn" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">Cancel</button>
-            </div>
+          <button id="saveEditBtn" class="save-btn" style="background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">Save Changes</button>
+          <button id="cancelEditBtn" class="cancel-btn" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">Cancel</button>
         </div>
       </div>
     `;
 
     // Replace customer details with edit form
     document.getElementById('customerDetails').innerHTML = editForm;
-
-    // Add event listeners for edit form buttons
-    document.getElementById('saveEditBtn').addEventListener('click', function() {
-      saveCustomerEdits(index);
-    });
-
-    document.getElementById('cancelEditBtn').addEventListener('click', function() {
-      // Reload the customer details view
-      viewCustomerDetails(index);
-    });
   }
 
-  // Add the saveCustomerEdits function
   async function saveCustomerEdits(index) {
     const customers = await getCustomers();
     const customer = customers[index];
@@ -387,13 +425,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Show success message
       alert("Customer details updated successfully!");
 
-      // Reload the customer details view
-      await viewCustomerDetails(index);
-
-      // Refresh the customer list to reflect changes
+      // Close modal and refresh the customer list
+      customerModal.style.display = 'none';
       await loadCustomers();
     } catch (error) {
-      alert('Error updating customer:' + error.message);
+      alert('Error updating customer: ' + error.message);
     }
   }
 
@@ -408,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await deleteCustomerById(customer.id);
         await loadCustomers(); // Refresh the list
       } catch (error) {
-        alert('Error deleting customer!' + error.message);
+        alert('Error deleting customer: ' + error.message);
       }
     }
   }
