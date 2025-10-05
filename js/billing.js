@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
             previousReadingInput.value = customer.last_reading;
             previousReadingDateSpan.textContent = `Initial reading date: ${customer.last_reading_date}`;
           } else {
-            previousReadingInput.value = '';
-            previousReadingDateSpan.textContent = 'No previous reading found';
+            previousReadingInput.value = '0';
+            previousReadingDateSpan.textContent = 'Starting with zero reading';
           }
         } else {
           customerNameInput.value = '';
@@ -111,8 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const prevReading = parseInt(previousReading);
       const currReading = parseInt(currentReading);
 
-      if (currReading <= prevReading) {
-        alert('Current reading must be greater than previous reading!');
+      if (currReading < prevReading) {
+        alert('Current reading must be greater or equal to the previous reading!');
         return;
       }
 
@@ -203,7 +203,9 @@ document.addEventListener('DOMContentLoaded', function() {
       - Monthly Charge: Ksh ${billingRecord.monthlyCharge}
       - *Total Amount Due: Ksh ${billingRecord.totalCost}*
       
-      Please make payment by the due date. Thank you!`;
+      Please make your payment to Michael Muthengi Makau 
+      Pochi La Biashara -> 0721416688 
+      as soon as possible. Thank you!`;
 
     return encodeURIComponent(message);
   }

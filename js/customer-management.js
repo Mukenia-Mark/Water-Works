@@ -258,7 +258,7 @@ Please make your payment as soon as possible. Thank you!`;
         <td>${sanitizeHTML(customer.contact)}</td>
         <td>${sanitizeHTML(customer.meter_number)}</td>
         <td>${sanitizeHTML(customer.monthly_charge)}</td>
-        <td>${sanitizeHTML(lastReading || 'No reading')}</td>
+        <td>${sanitizeHTML(lastReading !== null && lastReading !== undefined ? lastReading : '0')}</td>
         <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
         <td class="actions">
           <button class="view-btn" data-index="${index}">View</button>
