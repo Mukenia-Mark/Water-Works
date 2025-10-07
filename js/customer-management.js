@@ -344,13 +344,13 @@ Please make your payment as soon as possible. Thank you!`;
           <tbody>
             ${billingHistory.map(billing => `
               <tr>
-                <td>${formatDate(billing.date)}</td>
-                <td>${billing.previousReading}</td>
-                <td>${billing.currentReading}</td>
-                <td>${billing.consumption}</td>
-                <td>${billing.unitCost}</td>
-                <td>${billing.monthlyCharge}</td>
-                <td>${billing.totalCost}</td>
+                <td data-label="Date">${formatDate(billing.date)}</td>
+                <td data-label="Previous Reading">${billing.previousReading}</td>
+                <td data-label="Current Reading">${billing.currentReading}</td>
+                <td data-label="Units Used">${billing.consumption}</td>
+                <td data-label="Cost per Unit">${billing.unitCost}</td>
+                <td data-label="Monthly Charge">${billing.monthlyCharge}</td>
+                <td data-label="Total Due">${billing.totalCost}</td>
               </tr>
             `).join('')}
           </tbody>

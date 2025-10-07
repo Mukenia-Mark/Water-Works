@@ -199,13 +199,14 @@ h1 {
 
 .modal-content {
     background: white;
-    padding: 30px;
+    padding: 20px;
     border-radius: 10px;
-    width: 90%;
+    width: 95%;
     max-width: 600px;
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    margin: 20px;
 }
 
 .modal-header {
@@ -232,6 +233,7 @@ h1 {
 
 .customer-details {
     margin-bottom: 25px;
+    width: 100%;
 }
 
 .detail-grid {
@@ -241,43 +243,58 @@ h1 {
 }
 
 .detail-item {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .detail-label {
     font-weight: 600;
     color: #7f8c8d;
     display: block;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
 }
 
 .detail-value {
     color: #2c3e50;
+    font-size: 1rem;
+    width: 100%;
+    display: block;
 }
 
 .billing-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    font-size: 0.85rem;
 }
 
 .billing-table th, .billing-table td {
-    padding: 10px 15px;
+    padding: 8px 10px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
 }
 
 .billing-table th {
     background: #f8f9fa;
     font-weight: 600;
     color: #2c3e50;
+    font-size: 0.8rem;
 }
 
 .edit-form {
     margin-bottom: 25px;
+    width: 100%;
 }
 
 .edit-form .form-group {
     margin-bottom: 15px;
+    width: 100%;
 }
 
 .edit-form label {
@@ -285,6 +302,7 @@ h1 {
     margin-bottom: 5px;
     font-weight: 600;
     color: #2c3e50;
+    width: 100%;
 }
 
 .edit-input {
@@ -293,6 +311,7 @@ h1 {
     border: 2px solid #e1e5e9;
     border-radius: 4px;
     font-size: 14px;
+    box-sizing: border-box;
 }
 
 .edit-input:focus {
@@ -304,6 +323,8 @@ h1 {
     display: flex;
     justify-content: center;
     gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .whatsapp-btn {
@@ -354,9 +375,74 @@ h1 {
 .customer-actions {
     margin-top: 20px;
     text-align: center;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
+    .modal-content {
+        padding: 15px;
+        margin: 10px;
+        width: 90%;
+    }
+
+    .billing-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .billing-table thead,
+    .billing-table tbody,
+    .billing-table th,
+    .billing-table td,
+    .billing-table tr {
+        display: block;
+    }
+
+    .billing-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    .billing-table tr {
+        border: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        padding: 10px;
+    }
+
+    .billing-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        white-space: normal;
+        text-align: right;
+    }
+
+    .billing-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #7f8c8d;
+    }
+
+    .customer-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .customer-actions button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
     .detail-grid {
         grid-template-columns: 1fr;
     }
@@ -397,5 +483,30 @@ h1 {
 
     .customers-table th, .customers-table td {
         padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 10px;
+        margin: 5px;
+        width: 95%;
+    }
+
+    .detail-grid {
+        gap: 8px;
+    }
+
+    .detail-item {
+        margin-bottom: 8px;
+        padding: 6px 0;
+    }
+
+    .detail-label {
+        font-size: 0.85rem;
+    }
+
+    .detail-value {
+        font-size: 0.9rem;
     }
 }
