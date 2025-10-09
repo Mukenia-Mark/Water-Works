@@ -63,6 +63,7 @@ const connectionTest = Promise.race([
 ]);
 
 connectionTest.then(({ data, error }) => {
+  // const { data, error } = result;
   if (error) {
     console.error('Supabase connection failed:', error);
   } else {

@@ -86,6 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
       deleteCustomer(index);
     }
 
+    if (e.target && e.target.id === 'billCustomerBtn') {
+      e.preventDefault();
+      billCustomerFromModal();
+    }
+
     // Edit button in modal
     if (e.target && e.target.id === 'editCustomerBtn') {
       e.preventDefault();
@@ -316,7 +321,8 @@ Please make your payment as soon as possible. Thank you!`;
         </div>
         <div class="customer-actions" style="margin-top: 20px; text-align: center;">
           <button id="editCustomerBtn" class="edit-btn">Edit Customer</button>
-          <button id="whatsappBtn" class="modal-whatsapp-btn">Send via Whatsapp</button>
+          <button id="billCustomerBtn" class="bill-btn">Bill Customer</button>
+          <button id="whatsappBtn" class="modal-whatsapp-btn">Send bill via Whatsapp</button>
         </div>
       </div>
     `;
@@ -446,6 +452,29 @@ Please make your payment as soon as possible. Thank you!`;
       } catch (error) {
         alert('Error deleting customer: ' + error.message);
       }
+    }
+  }
+
+  async function billCustomerFromModal() {
+    try {
+      const customers = await getCustomers();
+      const customer = customers[window.currentCustomerIndex]
+
+      if (!customer) {
+        alert('Customer not found!');
+        return;
+      }
+
+        // Close the modal first
+        customerModal.style.display = 'none';
+
+        // Redirect to billing page with customer data pre-filled
+        const billingUrl = `bill-customer.html?meter=${encodeURIComponent(customer.meter_number)}`;
+        window.location.href = billingUrl;
+
+    } catch (error) {
+      console.error('Error billing customer:', error);
+      alert('Error: ' + error.message);
     }
   }
 

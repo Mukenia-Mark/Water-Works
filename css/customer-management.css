@@ -373,9 +373,27 @@ h1 {
 }
 
 .customer-actions {
-    margin-top: 20px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.bill-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.bill-btn:hover {
+    background: #2980b9;
 }
 
 @media (max-width: 768px) {
@@ -435,7 +453,7 @@ h1 {
 
     .customer-actions {
         flex-direction: column;
-        gap: 10px;
+        align-items: center;
     }
 
     .customer-actions button {

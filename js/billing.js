@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check if user is logged in
   if (!requireAuth()) return;
 
+  function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
+
   // Navigation functionality
   document.getElementById('backBtn').addEventListener('click', function() {
     window.location.href = 'customer-management.html';
@@ -30,44 +35,60 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set default date to today (in yyyy-mm-dd format for input)
   readingDateInput.value = getTodayDateForInput();
 
-  // Autofill previous reading when meter number is entered
-  customerMeterInput.addEventListener('blur', async function() {
-    const meterNumber = this.value;
+  // Auto-fill customer data function
+  async function autoFillCustomerData(meterNumber) {
+    if (!meterNumber) return;
 
-    if (meterNumber) {
-      try {
-        const customers = await getCustomers();
-        const customer = customers.find(c => c.meter_number === meterNumber);
+    try {
+      const customers = await getCustomers();
+      const customer = customers.find(c => c.meter_number === meterNumber);
 
-        if (customer) {
-          customerNameInput.value = customer.name;
-          monthlyChargeInput.value = customer.monthly_charge;
-          // Use last reading if available, otherwise use initial reading
-          const lastBilling = customer.billing_history && customer.billing_history.length > 0
-            ? customer.billing_history[customer.billing_history.length - 1]
-            : null;
+      if (customer) {
+        customerNameInput.value = customer.name;
+        monthlyChargeInput.value = customer.monthly_charge;
 
-          if (lastBilling) {
-            previousReadingInput.value = lastBilling.currentReading;
-            previousReadingDateSpan.textContent = `Last reading date: ${lastBilling.date}`;
-          } else if (customer.last_reading) {
-            previousReadingInput.value = customer.last_reading;
-            previousReadingDateSpan.textContent = `Initial reading date: ${customer.last_reading_date}`;
-          } else {
-            previousReadingInput.value = '0';
-            previousReadingDateSpan.textContent = 'Starting with zero reading';
-          }
+        // Use last reading if available, otherwise use initial reading
+        const lastBilling = customer.billing_history && customer.billing_history.length > 0
+          ? customer.billing_history[customer.billing_history.length - 1]
+          : null;
+
+        if (lastBilling) {
+          previousReadingInput.value = lastBilling.currentReading;
+          previousReadingDateSpan.textContent = `Last reading date: ${lastBilling.date}`;
+        } else if (customer.last_reading) {
+          previousReadingInput.value = customer.last_reading;
+          previousReadingDateSpan.textContent = `Initial reading date: ${customer.last_reading_date}`;
         } else {
-          customerNameInput.value = '';
-          monthlyChargeInput.value = '';
-          previousReadingInput.value = '';
-          previousReadingDateSpan.textContent = 'Customer not found';
+          previousReadingInput.value = '0';
+          previousReadingDateSpan.textContent = 'Starting with zero reading';
         }
-      } catch (error) {
-        console.error('Error loading customer:', error);
-        alert('Error loading customer data');
+
+        // Auto-focus on current reading for quick entry
+        currentReadingInput.focus();
+      } else {
+        customerNameInput.value = '';
+        monthlyChargeInput.value = '';
+        previousReadingInput.value = '';
+        previousReadingDateSpan.textContent = 'Customer not found';
       }
+    } catch (error) {
+      console.error('Error loading customer:', error);
+      alert('Error loading customer data');
     }
+  }
+
+  // Check for meter number in Url parameters and pre-fill
+  const meterFromUrl = getUrlParameter('meter');
+  if (meterFromUrl) {
+    customerMeterInput.value = meterFromUrl;
+    // Trigger the blur event to auto-fill customer data
+    autoFillCustomerData(meterFromUrl);
+  }
+
+  // Autofill previous reading when meter number is entered
+
+  customerMeterInput.addEventListener('blur', async function () {
+    await autoFillCustomerData(this.value);
   });
 
   // Clear form functionality
