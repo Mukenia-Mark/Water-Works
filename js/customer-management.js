@@ -282,6 +282,22 @@ Please make your payment as soon as possible. Thank you!`;
     });
   }
 
+  function integratePaymentManagement(customer) {
+    const billingHistory = customer.billing_history || [];
+
+    if (billingHistory.length === 0) {
+      return '<p>No billing history available.</p>';
+    }
+
+    // Create a billing history table with payment management
+    return `
+      <div class="billing-payment-section">
+        <h3> Billing History & Payments</h3>
+        ${displayBillingHistoryWithPayments(billingHistory, customer)}
+      </div>
+    `;
+  }
+
   async function viewCustomerDetails(index) {
     const customers = await getCustomers();
     const customer = customers[index];
@@ -334,43 +350,7 @@ Please make your payment as soon as possible. Thank you!`;
     `;
 
     // Populate billing history
-    const billingHistory = customer.billing_history || [];
-    let billingHTML = '';
-
-    if (billingHistory.length === 0) {
-      billingHTML = '<p>No billing history available.</p>';
-    } else {
-      billingHTML = `
-        <table class="billing-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Previous Reading</th>
-              <th>Current Reading</th>
-              <th>Units Used</th>
-              <th>Cost per Unit (Ksh)</th>
-              <th>Monthly Cost (Ksh)</th>
-              <th>Total Due (Ksh)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${billingHistory.map(billing => `
-              <tr>
-                <td data-label="Date">${formatDate(billing.date)}</td>
-                <td data-label="Previous Reading">${billing.previousReading}</td>
-                <td data-label="Current Reading">${billing.currentReading}</td>
-                <td data-label="Units Used">${billing.consumption}</td>
-                <td data-label="Cost per Unit">${billing.unitCost}</td>
-                <td data-label="Monthly Charge">${billing.monthlyCharge}</td>
-                <td data-label="Total Due">${billing.totalCost}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    document.getElementById('billingHistoryContent').innerHTML = billingHTML;
+    document.getElementById('billingHistoryContent').innerHTML = integratePaymentManagement(customer);
 
     // Show modal
     customerModal.style.display = 'flex';
@@ -501,7 +481,7 @@ Please make your payment as soon as possible. Thank you!`;
     const isOverDue = daysLate > 0 && payment.balance > 0;
 
     return `
-    <div class="payment-section" ${isOverDue ? 'overdue' : ''}>
+    <div class="payment-section ${isOverDue ? 'overdue' : ''}">
       <h4>Payment Management ${isOverDue ? '📅' : ''}</h4>
       
       <div class="payment-summary">
@@ -516,7 +496,7 @@ Please make your payment as soon as possible. Thank you!`;
         </div>
         <div>
           <strong>Status:</strong>
-          <span class="payment-status${payment.status}">${payment.status.toUpperCase()}</span>
+          <span class="payment-status ${payment.status}">${payment.status.toUpperCase()}</span>
         </div>
         <div>
           <strong>Due Date:</strong> ${formatDate(payment.dueDate)}
@@ -705,3 +685,8 @@ Please make your payment as soon as possible. Thank you!`;
   // Load customers on page load
   loadCustomers();
 });
+
+// Add global functions to window object
+window.recordPartialPaymentForBill = recordPartialPaymentForBill;
+window.recordFullPaymentForBill = recordFullPaymentForBill;
+window.viewBillDetails = viewBillDetails;
