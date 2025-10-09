@@ -3,7 +3,8 @@ import {
   logout,
   getCustomers,
   updateCustomer,
-  getTodayDateForInput
+  getTodayDateForInput,
+  calculateDueDate
 } from './auth.js';
 
 // Billing page functionality
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
           previousReadingDateSpan.textContent = 'Starting with zero reading';
         }
 
-        // Auto-focus on current reading for quick entry
+        // Autofocus on current reading for quick entry
         currentReadingInput.focus();
       } else {
         customerNameInput.value = '';
@@ -81,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const meterFromUrl = getUrlParameter('meter');
   if (meterFromUrl) {
     customerMeterInput.value = meterFromUrl;
-    // Trigger the blur event to auto-fill customer data
+    // Trigger the blur event to autofill customer data
     autoFillCustomerData(meterFromUrl);
   }
 
@@ -167,7 +168,16 @@ document.addEventListener('DOMContentLoaded', function() {
           consumption: consumption,
           unitCost: unitCost,
           monthlyCharge: monthlyCharge,
-          totalCost: totalCost
+          totalCost: totalCost,
+
+          payment: {
+            status: 'pending', // pending, partial, paid
+            amountDue: totalCost,
+            amountPaid: 0,
+            balance: totalCost,
+            dueDate: calculateDueDate(readingDate), // Only tracks
+            payments: [] // Array for multiple payments
+          }
         };
 
         // Add to customer's billing history

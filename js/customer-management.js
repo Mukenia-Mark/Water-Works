@@ -5,8 +5,14 @@ import {
   formatDate,
   getCurrentUser,
   deleteCustomerById,
-  updateCustomer,
+  updateCustomer, calculateDueDate,
 } from './auth.js';
+
+import {
+  recordPartialPayment,
+  checkOverduePayments
+} from './payment-management.js';
+
 import supabase from './supabase.js';
 
 // Customer management page functionality (now the home page)
@@ -476,6 +482,224 @@ Please make your payment as soon as possible. Thank you!`;
       console.error('Error billing customer:', error);
       alert('Error: ' + error.message);
     }
+  }
+
+  function addPaymentMethodSection(customer, billingIndex) {
+    const bill = customer.billing_history[billingIndex];
+    const payment = bill.payment || {
+      status: 'pending',
+      amount: bill.totalCost,
+      amountPaid: 0,
+      balance: bill.totalCost,
+      dueDate: calculateDueDate(bill.date),
+      payments: []
+    };
+
+    const today = new Date();
+    const dueDate = new Date(payment.dueDate);
+    const daysLate = Math.max(0, Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)));
+    const isOverDue = daysLate > 0 && payment.balance > 0;
+
+    return `
+    <div class="payment-section" ${isOverDue ? 'overdue' : ''}>
+      <h4>Payment Management ${isOverDue ? '📅' : ''}</h4>
+      
+      <div class="payment-summary">
+        <div>
+          <strong>Total Due:</strong> Ksh ${payment.amountDue}
+        </div>
+        <div>
+          <strong>Amount Paid:</strong> Ksh ${payment.amountPaid}
+        </div>
+        <div>
+          <strong>Balance:</strong> Ksh ${payment.balance}
+        </div>
+        <div>
+          <strong>Status:</strong>
+          <span class="payment-status${payment.status}">${payment.status.toUpperCase()}</span>
+        </div>
+        <div>
+          <strong>Due Date:</strong> ${formatDate(payment.dueDate)}
+        </div>
+        <div>
+          <strong>Days Overdue</strong> ${daysLate > 0 ? daysLate + ' days' : 'On time'}
+        </div>
+      </div>
+      
+     <!-- Partial Payment Form -->
+      <div class="payment-form">
+        <h5>Record Payment</h5>
+        <div class="payment-form-group">
+          <label>Payment Amount (Ksh):</label>
+          <input type="number" id="paymentAmount" class="payment-input" 
+                 value="${payment.balance}" min="0" max="${payment.balance}"
+                 placeholder="Enter payment amount">
+        </div>
+        <div class="payment-form-group">
+          <label>Payment Method:</label>
+          <select id="paymentMethod" class="payment-input">
+            <option value="MPESA">M-Pesa</option>
+            <option value="CASH">Cash</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="CHEQUE">Cheque</option>
+          </select>
+        </div>
+        <div class="payment-form-group">
+          <label>Transaction/Reference Number:</label>
+          <input type="text" id="transactionId" class="payment-input" placeholder="Enter transaction reference">
+        </div>
+        <div class="payment-form-group">
+          <label>Payment Date:</label>
+          <input type="date" id="paymentDate" class="payment-input" value="${new Date().toISOString().split('T')[0]}">
+        </div>
+        <div class="payment-form-group">
+          <label>Notes (optional):</label>
+          <input type="text" id="paymentNotes" class="payment-input" placeholder="Any payment notes">
+        </div>
+        <div class="payment-actions">
+          <button class="payment-btn primary" onclick="recordPartialPaymentForBill('${customer.id}', ${billingIndex})">
+            Record Payment
+          </button>
+          ${payment.balance > 0 ? `
+            <button class="payment-btn success" 
+                    onclick="recordFullPaymentForBill('${customer.id}', ${billingIndex})">
+              Mark as Fully Paid
+            </button>
+          ` : ''}
+        </div>
+      </div>
+      
+      <!-- Payment History -->
+      ${payment.payments.length > 0 ? `
+        <div class="payment-history">
+          <h5>Payment History</h5>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${payment.payments.map(p => `
+                <tr>
+                  <td>${formatDate(p.date)}</td>
+                  <td>Ksh ${p.amount}</td>
+                  <td>${p.method}</td>
+                  <td>${p.transactionId || '-'}</td>
+                  <td>${p.notes || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  }
+
+  // Update billing history display function
+  function displayBillingHistoryWithPayments(billingHistory, customer) {
+    if (billingHistory.length === 0) {
+      return '<p>No billing history available.</p>';
+    }
+
+    return `
+    <table class="billing-table-with-payments">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Previous</th>
+          <th>Current</th>
+          <th>Units</th>
+          <th>Total Due</th>
+          <th>Amount Paid</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${billingHistory.map((bill, index) => {
+      const payment = bill.payment || {
+        status: 'pending',
+        amountDue: bill.totalCost,
+        amountPaid: 0,
+        balance: bill.totalCost
+      };
+
+      return `
+            <tr>
+              <td data-label="Date">${formatDate(bill.date)}</td>
+              <td data-label="Previous">${bill.previousReading}</td>
+              <td data-label="Current">${bill.currentReading}</td>
+              <td data-label="Units">${bill.consumption}</td>
+              <td data-label="Total Due">${payment.amountDue}</td>
+              <td data-label="Amount Paid">${payment.amountPaid}</td>
+              <td data-label="Balance">${payment.balance}</td>
+              <td data-label="Status">
+                <span class="payment-status ${payment.status}">${payment.status.toUpperCase()}</span>
+              </td>
+              <td data-label="Actions">
+                <button class="view-btn" onclick="viewBillDetails('${customer.id}', ${index})">
+                  Manage
+                </button>
+              </td>
+            </tr>
+          `;
+    }).join('')}
+      </tbody>
+    </table>
+  `;
+  }
+
+  async function recordPartialPaymentForBill(customerId, billingIndex) {
+    const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const transactionId = document.getElementById('transactionId').value;
+    const paymentDate = document.getElementById('paymentDate').value;
+    const paymentNotes = document.getElementById('paymentNotes').value;
+
+    if (!paymentAmount || paymentAmount <= 0) {
+      alert('Please enter a valid payment amount');
+      return;
+    }
+
+    try {
+      await recordPartialPayment(customerId, billingIndex, {
+        amount: paymentAmount,
+        method: paymentMethod,
+        transactionId: transactionId,
+        date: paymentDate,
+        notes: paymentNotes
+      });
+
+      alert('Payment recorded successfully!');
+      viewCustomerDetails(window.currentCustomerIndex);
+    } catch (error) {
+      alert('Error recording payment: ' + error.message);
+    }
+  }
+
+  async function recordFullPaymentForBill(customerId, billingIndex) {
+    const customers = await getCustomers();
+    const customer = customers.find(c => c.id === customerId);
+    const bill = customer.billing_history[billingIndex];
+    const balance = bill.payment.balance;
+
+    // Auto-fill the payment amount with the full balance
+    document.getElementById('paymentAmount').value = balance;
+    await recordPartialPaymentForBill(customerId, billingIndex);
+  }
+
+  function viewBillDetails(customerId, billingIndex) {
+    // This function would show a detailed view of a specific bill
+    // For now, we'll just open the customer modal at the specific bill
+    // You can implement this based on your needs
+    console.log('View bill details:', customerId, billingIndex);
   }
 
   // Load customers on page load

@@ -355,6 +355,12 @@ function getTodayDateForInput() {
   return new Date().toISOString().split('T')[0];
 }
 
+function calculateDueDate (billingDate) {
+  const dueDate = new Date(billingDate);
+  dueDate.setDate(dueDate.getDate() + 30); // 30 days grace period
+  return dueDate.toISOString().split('T')[0];
+}
+
 // Debug database schema
 async function checkCustomerSchema() {
   try {
@@ -394,5 +400,6 @@ export {
   deleteCustomerById,
   formatDate,
   getTodayDate,
-  getTodayDateForInput
+  getTodayDateForInput,
+  calculateDueDate
 };
