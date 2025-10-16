@@ -6,7 +6,12 @@ function generateWhatsAppMessage(customer, billing) {
     return encodeURIComponent('Hello ${customer.name}! Your water bill is ready.');
   }
 
-  const message = `💧 *Water Bill Receipt* 💧
+  // Calculate total due including any previous balances
+  const totalDue = calculateTotalDueForCustomer(customer);
+  const currentBillAmount = billing.totalCost;
+  const previousBalance = totalDue - currentBillAmount;
+
+  let message = `💧 *Water Bill Receipt* 💧
       
   *Customer:* ${customer.name}
   *Meter No:* ${customer.meter_number}
@@ -17,14 +22,43 @@ function generateWhatsAppMessage(customer, billing) {
   - Current: ${billing.currentReading} units
   - Consumption: ${billing.consumption} units
   
-  *Charges:*
+  *Current Bill Charges:*
   - Water Usage (${billing.consumption} units × Ksh ${billing.unitCost}): Ksh ${(billing.consumption * billing.unitCost).toFixed(2)}
   - Monthly Charge: Ksh ${billing.monthlyCharge}
-  - *Total Amount Due: Ksh ${billing.totalCost}*
+  - *Current Bill Total: Ksh ${currentBillAmount.toFixed(2)}*`;
+
+  // Add previous balances if any
+  if (previousBalance > 0) {
+    message += `\n\n Previous Balance:* ${previousBalance.toFixed(2)}*`;
+  }
+
+  // Add total due
+  message += `\n\n*Total Amount Due: Ksh ${totalDue.toFixed(2)}*`;
+
+  // Add payment instructions
+  message += `\n\nPlease make your payment as soon as possible. 
+  Pochi La Biashara
+  0721416688
   
-  Please make your payment as soon as possible. Thank you!`;
+  Thank you!`;
 
   return encodeURIComponent(message);
+}
+
+// Calculate total due including all unpaid balances
+function calculateTotalDueForCustomer(customer) {
+  if (!customer.billing_history || customer.billing_history.length === 0) {
+    return 0;
+  }
+
+  const totalDue = customer.billing_history.reduce((total, bill) => {
+    if (bill.payment) {
+      return total + (bill.payment.balance || 0);
+    }
+    return total + (bill.totalCost || 0);
+  }, 0);
+
+  return totalDue;
 }
 
 // WhatsApp message sending

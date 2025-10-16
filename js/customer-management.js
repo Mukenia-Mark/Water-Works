@@ -5,7 +5,8 @@ import {
   formatDate,
   getCurrentUser,
   deleteCustomerById,
-  updateCustomer, calculateDueDate,
+  updateCustomer,
+  calculateDueDate
 } from './auth.js';
 
 import {
@@ -17,8 +18,6 @@ import {
   sendWhatsAppMessage,
   sanitizeHTML
 } from './utilities.js';
-
-import supabase from './supabase.js';
 
 // Customer management page functionality (now the home page)
 document.addEventListener('DOMContentLoaded', function() {
@@ -59,12 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Modal functionality
   closeModal.addEventListener('click', function() {
-    customerModal.style.display = 'none';
+    customerModal.classList.remove('show');
   });
 
   window.addEventListener('click', function(event) {
     if (event.target === customerModal) {
-      customerModal.style.display = 'none';
+      customerModal.classList.remove('show');
     }
   });
 
@@ -130,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Unified WhatsApp function for modal
+  // WhatsApp functionality functions
   async function sendWhatsAppFromModal() {
     try {
       const customers = await getCustomers();
@@ -256,6 +255,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Add this function to calculate total due including all unpaid bills
+  function calculateTotalDue(customer) {
+    if (!customer.billing_history || customer.billing_history.length === 0) {
+      return '0.00';
+    }
+
+    const totalDue = customer.billing_history.reduce((total, bill) => {
+      if (bill.payment && bill.payment.balance > 0) {
+        return total + bill.payment.balance;
+      }
+      // If no payment object, assume full amount is due
+      if (!bill.payment && bill.totalCost) {
+        return total + bill.totalCost;
+      }
+      return total;
+    }, 0);
+
+    return totalDue.toFixed(2);
+  }
+
+  // Add this function to get detailed due breakdown for display
+  function getDueBreakdown(customer) {
+    if (!customer.billing_history || customer.billing_history.length === 0) {
+      return { current: '0.00', previous: '0.00', total: '0.00' };
+    }
+
+    let currentBill = 0;
+    let previousBalance = 0;
+
+    customer.billing_history.forEach((bill, index) => {
+      const billBalance = bill.payment ? bill.payment.balance : bill.totalCost;
+
+      // Current bill is the most recent one
+      if (index === customer.billing_history.length - 1) {
+        currentBill = billBalance;
+      } else {
+        // All other bills are previous balance
+        previousBalance += billBalance;
+      }
+    });
+
+    const totalDue = currentBill + previousBalance;
+
+    return {
+      current: currentBill.toFixed(2),
+      previous: previousBalance.toFixed(2),
+      total: totalDue.toFixed(2)
+    };
+  }
+
   function integratePaymentManagement(customer) {
     const billingHistory = customer.billing_history || [];
 
@@ -286,39 +335,72 @@ document.addEventListener('DOMContentLoaded', function() {
       ? customer.billing_history[customer.billing_history.length - 1]
       : null;
 
+    // Calculate due breakdown
+    const dueBreakdown = getDueBreakdown(customer);
+
     // Populate customer details
     document.getElementById('customerDetails').innerHTML = `
-      <div class="customer-details">
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-label">Name:</span>
-            <span class="detail-value">${customer.name}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Contact:</span>
-            <span class="detail-value">${customer.contact}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Meter Number:</span>
-            <span class="detail-value">${customer.meter_number}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Monthly Charge:</span>
-            <span class="detail-value">${customer.monthly_charge}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Last Reading:</span>
-            <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Last Reading Date:</span>
-            <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date) || 'No date'}</span>
+      <div class="customer-details-integrated">
+        <div class="details-section">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value">${customer.name}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Contact:</span>
+              <span class="detail-value">${customer.contact}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Meter Number:</span>
+              <span class="detail-value">${customer.meter_number}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Monthly Charge:</span>
+              <span class="detail-value">Ksh ${customer.monthly_charge}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Last Reading:</span>
+              <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Last Reading Date:</span>
+              <span class="detail-value">${lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date) || 'No date'}</span>
+            </div>
+            ${parseFloat(dueBreakdown.previous) > 0 ? `
+            <div class="detail-item previous-balance-item">
+              <span class="detail-label">Previous Balance:</span>
+              <span class="detail-value previous-balance">Ksh ${dueBreakdown.previous}</span>
+            </div>
+            ` : ''}
+            ${lastBilling ? `
+            <div class="detail-item current-bill-item">
+              <span class="detail-label">Current Bill:</span>
+              <span class="detail-value current-bill">Ksh ${dueBreakdown.current}</span>
+            </div>
+            ` : ''}
+            <div class="detail-item total-due-item">
+              <span class="detail-label">Total Amount Due:</span>
+              <span class="detail-value total-due">Ksh ${dueBreakdown.total}</span>
+            </div>
           </div>
         </div>
-        <div class="customer-actions" style="margin-top: 20px; text-align: center;">
-          <button id="editCustomerBtn" class="edit-btn">Edit Customer</button>
-          <button id="billCustomerBtn" class="bill-btn">Bill Customer</button>
-          <button id="whatsappBtn" class="modal-whatsapp-btn">Send bill via Whatsapp</button>
+        
+        <div class="actions-section">
+          <div class="quick-actions">
+            <button id="editCustomerBtn" class="edit-btn">
+              <span class="action-icon">✏️</span>
+              Edit Customer
+            </button>
+            <button id="billCustomerBtn" class="bill-btn">
+              <span class="action-icon">💰</span>
+              Bill Customer
+            </button>
+            <button id="whatsappBtn" class="modal-whatsapp-btn">
+              <span class="action-icon">💬</span>
+              Send WhatsApp
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -327,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('billingHistoryContent').innerHTML = integratePaymentManagement(customer);
 
     // Show modal
-    customerModal.style.display = 'flex';
+    customerModal.classList.add('show');
   }
 
   async function editCustomerDetails(index) {
@@ -392,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("Customer details updated successfully!");
 
       // Close modal and refresh the customer list
-      customerModal.style.display = 'none';
+      customerModal.classList.remove('show');
       await loadCustomers();
     } catch (error) {
       alert('Error updating customer: ' + error.message);
@@ -425,12 +507,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-        // Close the modal first
-        customerModal.style.display = 'none';
+      // Close the modal first
+      customerModal.classList.remove('show');
 
-        // Redirect to billing page with customer data pre-filled
-        const billingUrl = `bill-customer.html?meter=${encodeURIComponent(customer.meter_number)}`;
-        window.location.href = billingUrl;
+      // Redirect to billing page with customer data pre-filled
+      const billingUrl = `bill-customer.html?meter=${encodeURIComponent(customer.meter_number)}`;
+      window.location.href = billingUrl;
 
     } catch (error) {
       console.error('Error billing customer:', error);
@@ -578,11 +660,11 @@ document.addEventListener('DOMContentLoaded', function() {
       </thead>
       <tbody>
         ${billingHistory.map((bill, index) => {
-          const payment = bill.payment || {
-            status: 'pending',
-            amountDue: bill.totalCost,
-            amountPaid: 0,
-            balance: bill.totalCost
+      const payment = bill.payment || {
+        status: 'pending',
+        amountDue: bill.totalCost,
+        amountPaid: 0,
+        balance: bill.totalCost
       };
 
       return `
@@ -660,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-fill the payment amount with the full balance
     document.getElementById('paymentAmount').value = balance;
-    await recordPartialPaymentForBill(customerId, billingIndex);
+    await recordPartialPaymentForBill(meterNumber, billingIndex);
   }
 
   async function viewBillDetails(meterNumber, billingIndex) {
@@ -713,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('billingHistoryContent').innerHTML = addPaymentMethodSection(customer, billingIndex);
 
       // Show modal if not already visible
-      customerModal.style.display = 'flex';
+      customerModal.classList.add('show');
 
     } catch (error) {
       console.error('Error viewing bill details:', error);

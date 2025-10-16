@@ -10,9 +10,8 @@ import {
 import {
   generateWhatsAppMessage,
   sendWhatsAppMessage,
-  getUrlParameter,
-  validateMeterReading
-} from './utilities.js'
+  getUrlParameter
+} from './utilities.js';
 
 // Billing page functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -89,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Autofill previous reading when meter number is entered
-
   customerMeterInput.addEventListener('blur', async function () {
     await autoFillCustomerData(this.value);
   });
@@ -105,6 +103,32 @@ document.addEventListener('DOMContentLoaded', function() {
     monthlyChargeInput.value = '';
   });
 
+  function validateMeterReading(reading) {
+    const num = parseInt(reading);
+    return !isNaN(num) && num >= 0 && num <= 999999;
+  }
+
+  // Helper function to calculate previous balance
+  function calculatePreviousBalance(customer, currentBilling) {
+    if (!customer.billing_history || customer.billing_history.length <= 1) {
+      return 0;
+    }
+
+    let previousBalance = 0;
+    customer.billing_history.forEach((bill, index) => {
+      // Skip the current bill (last one)
+      if (index === customer.billing_history.length - 1) return;
+
+      if (bill.payment && bill.payment.balance > 0) {
+        previousBalance += bill.payment.balance;
+      } else if (!bill.payment) {
+        previousBalance += bill.totalCost;
+      }
+    });
+
+    return previousBalance;
+  }
+
   // Save billing record functionality
   document.getElementById('saveBtn').addEventListener('click', async function() {
     const meterNumber = customerMeterInput.value;
@@ -113,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentReading = currentReadingInput.value;
     const unitCost = 100;
     const monthlyCharge = parseInt(monthlyChargeInput.value);
-
 
     if (!validateMeterReading(currentReading)) {
       alert('Please enter valid meter reading (0 - 999999)');
@@ -152,6 +175,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate total charge
         const totalCost = (consumption * unitCost) + parseInt(monthlyCharge);
 
+        // Calculate previous balance
+        const previousBalance = calculatePreviousBalance(customer, null);
+        const totalDue = totalCost + previousBalance;
+
         // Create billing record
         const billingRecord = {
           date: readingDate,
@@ -167,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
             amountDue: totalCost,
             amountPaid: 0,
             balance: totalCost,
-            dueDate: calculateDueDate(readingDate), // Only tracks
+            dueDate: calculateDueDate(readingDate),
             payments: [] // Array for multiple payments
           }
         };
@@ -184,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Ask if user wants to send via whatsapp
-        const sendWhatsApp = confirm(`Billing record saved successfully!\nUnits Used: ${consumption}\n\nWould you like to send the receipt via WhatsApp?`);
+        const sendWhatsApp = confirm(`Billing record saved successfully!\nUnits Used: ${consumption}\nCurrent Bill: Ksh ${totalCost.toFixed(2)}\n${previousBalance > 0 ? `Previous Balance: Ksh ${previousBalance.toFixed(2)}\n` : ''}Total Due: Ksh ${totalDue.toFixed(2)}\n\nWould you like to send the receipt via WhatsApp?`);
 
         if (sendWhatsApp) {
           const message = generateWhatsAppMessage(customer, billingRecord);
