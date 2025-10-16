@@ -238,13 +238,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const lastReadingDate = lastBilling ? formatDate(lastBilling.date) : formatDate(customer.last_reading_date);
 
       row.innerHTML = `
-        <td>${sanitizeHTML(customer.name)}</td>
-        <td>${sanitizeHTML(customer.contact)}</td>
-        <td>${sanitizeHTML(customer.meter_number)}</td>
-        <td>${sanitizeHTML(customer.monthly_charge)}</td>
-        <td>${sanitizeHTML(lastReading || 'No reading')}</td>
-        <td>${sanitizeHTML(lastReadingDate || 'No date')}</td>
-        <td class="actions">
+        <td data-label="Name">${sanitizeHTML(customer.name)}</td>
+        <td data-label="Contact">${sanitizeHTML(customer.contact)}</td>
+        <td data-label="Meter Number">${sanitizeHTML(customer.meter_number)}</td>
+        <td data-label="Monthly Charge">${sanitizeHTML(customer.monthly_charge)}</td>
+        <td data-label="Last Reading">${sanitizeHTML(lastReading || 'No reading')}</td>
+        <td data-label="Last Reading Date">${sanitizeHTML(lastReadingDate || 'No date')}</td>
+        <td data-label="Actions" class="actions">
           <button class="view-btn" data-index="${index}">View</button>
           <button class="whatsapp-btn" data-index="${index}">WhatsApp</button>
           <button class="delete-btn" data-index="${index}">Delete</button>
