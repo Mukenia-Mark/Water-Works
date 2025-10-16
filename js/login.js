@@ -42,13 +42,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (email && password) {
             const result = await login(email, password);
 
-            if (result.success) {
+            if (result && result.success) {
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href="customer-management.html";
                 }, 1000);
             } else {
-                showMessage(result.error, 'error');
+                showMessage(result?.error || 'Login failed', 'error');
             }
         } else {
             showMessage('Please enter email and password', 'error');

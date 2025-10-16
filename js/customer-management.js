@@ -9,9 +9,14 @@ import {
 } from './auth.js';
 
 import {
-  recordPartialPayment,
-  checkOverduePayments
+  recordPartialPayment
 } from './payment-management.js';
+
+import {
+  generateWhatsAppMessage,
+  sendWhatsAppMessage,
+  sanitizeHTML
+} from './utilities.js';
 
 import supabase from './supabase.js';
 
@@ -114,50 +119,16 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       viewCustomerDetails(window.currentCustomerIndex);
     }
+
+    // Manage bill button in billing history
+    if (e.target && e.target.classList.contains('manage-bill-btn')) {
+      e.preventDefault();
+      const meterNumber = e.target.getAttribute('data-meter-number');
+      const billingIndex = parseInt(e.target.getAttribute('data-billing-index'));
+      console.log("Manage bill clicked - Meter: ", meterNumber, 'Index:', billingIndex);
+      viewBillDetails(meterNumber, billingIndex);
+    }
   });
-
-  // WhatsApp functionality functions
-  function generateWhatsAppMessage(customer, latestBilling) {
-    if (!latestBilling) {
-      return encodeURIComponent(`Hello ${customer.name}! Your water bill is ready.`);
-    }
-
-    const message = `💧 *Water Bill Receipt* 💧
-    
-*Customer:* ${customer.name}
-*Meter No:* ${customer.meter_number}
-*Bill Date:* ${formatDate(latestBilling.date)}
-
-*Meter Readings:*
-- Previous: ${latestBilling.previousReading} units
-- Current: ${latestBilling.currentReading} units
-- Consumption: ${latestBilling.consumption} units
-
-*Charges:*
-- Water Usage (${latestBilling.consumption} units x Ksh ${latestBilling.unitCost} per unit): Ksh ${(latestBilling.consumption * latestBilling.unitCost).toFixed(2)}
-- Monthly Charge: Ksh ${latestBilling.monthlyCharge}
-- *Total Amount Due: Ksh ${latestBilling.totalCost}*
-
-Please make your payment as soon as possible. Thank you!`;
-
-    return encodeURIComponent(message);
-  }
-
-  function sendWhatsAppMessage(phoneNumber, message) {
-    // Clean phone number (remove spaces, dashes, etc.)
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-
-    // Check if number has a country code, if not assume kenya (+254)
-    let formattedPhone = cleanPhone;
-    if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
-      formattedPhone = '254' + cleanPhone;
-    } else if (cleanPhone.length === 10 && cleanPhone.startsWith('0')) {
-      formattedPhone = '254' + cleanPhone.substring(1);
-    }
-
-    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
-    window.open(whatsappUrl, '_blank');
-  }
 
   // Unified WhatsApp function for modal
   async function sendWhatsAppFromModal() {
@@ -216,8 +187,18 @@ Please make your payment as soon as possible. Thank you!`;
   }
 
   async function loadCustomers() {
-    const customers = await getCustomers();
-    displayCustomers(customers);
+    try {
+      const customers = await getCustomers();
+      if (!customers) {
+        console.error('No customer data received');
+        displayCustomers([]);
+        return;
+      }
+      displayCustomers(customers);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      displayCustomers([])
+    }
   }
 
   async function searchCustomers() {
@@ -234,13 +215,6 @@ Please make your payment as soon as possible. Thank you!`;
     } else {
       displayCustomers(customers);
     }
-  }
-
-  function sanitizeHTML(str) {
-    if (typeof str !== 'string') return str;
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   function displayCustomers(customers) {
@@ -537,12 +511,12 @@ Please make your payment as soon as possible. Thank you!`;
           <input type="text" id="paymentNotes" class="payment-input" placeholder="Any payment notes">
         </div>
         <div class="payment-actions">
-          <button class="payment-btn primary" onclick="recordPartialPaymentForBill('${customer.id}', ${billingIndex})">
+          <button class="payment-btn primary" onclick="window.recordPartialPaymentForBill('${customer.meter_number}', ${billingIndex})">
             Record Payment
           </button>
           ${payment.balance > 0 ? `
             <button class="payment-btn success" 
-                    onclick="recordFullPaymentForBill('${customer.id}', ${billingIndex})">
+                    onclick="window.recordFullPaymentForBill('${customer.meter_number}', ${billingIndex})">
               Mark as Fully Paid
             </button>
           ` : ''}
@@ -604,11 +578,11 @@ Please make your payment as soon as possible. Thank you!`;
       </thead>
       <tbody>
         ${billingHistory.map((bill, index) => {
-      const payment = bill.payment || {
-        status: 'pending',
-        amountDue: bill.totalCost,
-        amountPaid: 0,
-        balance: bill.totalCost
+          const payment = bill.payment || {
+            status: 'pending',
+            amountDue: bill.totalCost,
+            amountPaid: 0,
+            balance: bill.totalCost
       };
 
       return `
@@ -624,7 +598,7 @@ Please make your payment as soon as possible. Thank you!`;
                 <span class="payment-status ${payment.status}">${payment.status.toUpperCase()}</span>
               </td>
               <td data-label="Actions">
-                <button class="view-btn" onclick="viewBillDetails('${customer.id}', ${index})">
+                <button class="view-btn manage-bill-btn" data-meter-number="${customer.meter_number}" data-billing-index="${index}">
                   Manage
                 </button>
               </td>
@@ -636,7 +610,7 @@ Please make your payment as soon as possible. Thank you!`;
   `;
   }
 
-  async function recordPartialPaymentForBill(customerId, billingIndex) {
+  async function recordPartialPaymentForBill(meterNumber, billingIndex) {
     const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
     const paymentMethod = document.getElementById('paymentMethod').value;
     const transactionId = document.getElementById('transactionId').value;
@@ -649,7 +623,15 @@ Please make your payment as soon as possible. Thank you!`;
     }
 
     try {
-      await recordPartialPayment(customerId, billingIndex, {
+      const customers = await getCustomers();
+      const customer = customers.find(c => c.meter_number === meterNumber);
+
+      if (!customer) {
+        alert('Customer not found!');
+        return;
+      }
+
+      await recordPartialPayment(customer.id, billingIndex, {
         amount: paymentAmount,
         method: paymentMethod,
         transactionId: transactionId,
@@ -658,15 +640,21 @@ Please make your payment as soon as possible. Thank you!`;
       });
 
       alert('Payment recorded successfully!');
-      viewCustomerDetails(window.currentCustomerIndex);
+      viewBillDetails(meterNumber, billingIndex);
     } catch (error) {
       alert('Error recording payment: ' + error.message);
     }
   }
 
-  async function recordFullPaymentForBill(customerId, billingIndex) {
+  async function recordFullPaymentForBill(meterNumber, billingIndex) {
     const customers = await getCustomers();
-    const customer = customers.find(c => c.id === customerId);
+    const customer = customers.find(c => c.meter_number === meterNumber);
+
+    if (!customer) {
+      alert('Customer not found!');
+      return;
+    }
+
     const bill = customer.billing_history[billingIndex];
     const balance = bill.payment.balance;
 
@@ -675,18 +663,69 @@ Please make your payment as soon as possible. Thank you!`;
     await recordPartialPaymentForBill(customerId, billingIndex);
   }
 
-  function viewBillDetails(customerId, billingIndex) {
-    // This function would show a detailed view of a specific bill
-    // For now, we'll just open the customer modal at the specific bill
-    // You can implement this based on your needs
-    console.log('View bill details:', customerId, billingIndex);
+  async function viewBillDetails(meterNumber, billingIndex) {
+    try {
+      const customers = await getCustomers();
+      const customer = customers.find(c => c.meter_number === meterNumber);
+
+      if (!customer) {
+        alert('Customer not found!');
+        return;
+      }
+
+      const bill = customer.billing_history[billingIndex];
+
+      if (!bill) {
+        alert('Billing record not found!');
+        return;
+      }
+
+      // Store customer index for payment functions
+      window.currentCustomerIndex = customers.findIndex(c => c.meter_number === meterNumber);
+      window.currentBillingIndex = billingIndex;
+
+      // Update the modal with bill details and payment form
+      document.getElementById('customerDetails').innerHTML = `
+        <div class="customer-details">
+          <h3>Bill Details for ${customer.name}</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Bill Date:</span>
+              <span class="detail-value">${formatDate(bill.date)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Previous Reading:</span>
+              <span class="detail-value">${bill.previousReading} units</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Current Reading:</span>
+              <span class="detail-value">${bill.currentReading} units</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Consumption:</span>
+              <span class="detail-value">${bill.consumption} units</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Show payment management section in billing history area
+      document.getElementById('billingHistoryContent').innerHTML = addPaymentMethodSection(customer, billingIndex);
+
+      // Show modal if not already visible
+      customerModal.style.display = 'flex';
+
+    } catch (error) {
+      console.error('Error viewing bill details:', error);
+      alert('Error loading bill details: ' + error.message);
+    }
   }
 
   // Load customers on page load
   loadCustomers();
-});
 
-// Add global functions to window object
-window.recordPartialPaymentForBill = recordPartialPaymentForBill;
-window.recordFullPaymentForBill = recordFullPaymentForBill;
-window.viewBillDetails = viewBillDetails;
+  // Expose functions to window for onclick handlers
+  window.recordPartialPaymentForBill = recordPartialPaymentForBill;
+  window.recordFullPaymentForBill = recordFullPaymentForBill;
+  window.viewBillDetails = viewBillDetails;
+});

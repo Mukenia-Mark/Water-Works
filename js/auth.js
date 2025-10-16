@@ -191,6 +191,8 @@ function getCurrentUser() {
 // Customer management functions (localStorage fallback)
 async function getCustomers() {
   const userId = localStorage.getItem('userId');
+  console.log('Getting customers for user:', userId);
+
   if (!userId) {
     console.log('No user ID found');
     return [];
@@ -203,7 +205,12 @@ async function getCustomers() {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.log('Supabase error:', error);
+      throw error;
+    }
+
+    console.log('Retrieved customers:', data);
     return data || [];
   } catch (error) {
     console.error('Error getting customers:', error);

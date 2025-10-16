@@ -7,15 +7,17 @@ import {
   calculateDueDate
 } from './auth.js';
 
+import {
+  generateWhatsAppMessage,
+  sendWhatsAppMessage,
+  getUrlParameter,
+  validateMeterReading
+} from './utilities.js'
+
 // Billing page functionality
 document.addEventListener('DOMContentLoaded', function() {
   // Check if user is logged in
   if (!requireAuth()) return;
-
-  function getUrlParameter(name) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name);
-  }
 
   // Navigation functionality
   document.getElementById('backBtn').addEventListener('click', function() {
@@ -103,16 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     monthlyChargeInput.value = '';
   });
 
-  function validateMeterReading(reading) {
-    const num = parseInt(reading);
-    return !isNaN(num) && num >= 0 && num <= 999999;
-  }
-
-  function validatePhoneNumber(phone) {
-    const phoneRegex = /^[0-9+\-\s()]{10,}$/;
-    return phoneRegex.test(phone);
-  }
-
   // Save billing record functionality
   document.getElementById('saveBtn').addEventListener('click', async function() {
     const meterNumber = customerMeterInput.value;
@@ -158,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const consumption = currReading - prevReading;
 
         // Calculate total charge
-        const totalCost = (consumption * unitCost) + monthlyCharge;
+        const totalCost = (consumption * unitCost) + parseInt(monthlyCharge);
 
         // Create billing record
         const billingRecord = {
@@ -216,42 +208,4 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Please fill in all required fields!');
     }
   });
-
-  // WhatsApp helper functions
-  function generateWhatsAppMessage(customer, billingRecord) {
-    const message = `💧 *Water Bill Receipt* 💧
-      *Customer:* ${customer.name}
-      *Meter No:* ${customer.meter_number}
-      *Bill Date:* ${billingRecord.date}
-      
-      *Meter Readings:*
-      - Previous: ${billingRecord.previousReading} units
-      - Current: ${billingRecord.currentReading} units
-      - Consumption: ${billingRecord.consumption} units
-      
-      *Charges:*
-      - Water Usage (${billingRecord.consumption} units × Ksh ${billingRecord.unitCost}): Ksh ${(billingRecord.consumption * billingRecord.unitCost).toFixed(2)}
-      - Monthly Charge: Ksh ${billingRecord.monthlyCharge}
-      - *Total Amount Due: Ksh ${billingRecord.totalCost}*
-      
-      Please make your payment to Michael Muthengi Makau
-      Pochi La Biashara -> 0721416688
-      as soon as possible. Thank you!`;
-
-    return encodeURIComponent(message);
-  }
-
-  function sendWhatsAppMessage(phoneNumber, message) {
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-    let formattedPhone = cleanPhone;
-
-    if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
-      formattedPhone = '254' + cleanPhone;
-    } else if (cleanPhone.length === 10 && cleanPhone.startsWith('0')) {
-      formattedPhone = '254' + cleanPhone.substring(1);
-    }
-
-    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
-    window.open(whatsappUrl, '_blank');
-  }
 });
