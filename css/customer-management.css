@@ -597,13 +597,15 @@ h1 {
         display: none;
     }
 
-    .actions {
+    .customers-table td.actions {
+        display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 8px;
         height: auto;
         justify-content: center;
-        align-items: end;
-        flex-wrap: nowrap;
+        padding-top: 10px;
+        padding-bottom: 5px;
     }
 
     .view-btn, .delete-btn, .whatsapp-btn {
