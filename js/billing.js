@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const prevReading = parseInt(previousReading);
       const currReading = parseInt(currentReading);
 
-      if (currReading <= prevReading) {
-        alert('Current reading must be greater than previous reading!');
+      if (currReading < prevReading) {
+        alert('Current reading cannot be less than previous reading!');
         return;
       }
 
