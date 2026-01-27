@@ -54,7 +54,8 @@ npm install
 npm run dev
 ```
 
-🛠️ Development
+## 🛠️ Development
+
 This project uses:
 
 Vite for fast development and building
@@ -63,5 +64,5 @@ Prettier for code formatting
 
 Environment variables (see .env.example)
 
-📄 License
+## 📄 License
 MIT License - see the LICENSE file for details.
