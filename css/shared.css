@@ -53,6 +53,67 @@ body {
     background: #c0392b;
 }
 
+.settings-btn {
+    background: linear-gradient(135deg, #8e44ad, #6c3483);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.settings-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
+    background: linear-gradient(135deg, #6c3483, #5b2d6e);
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    border: 2px solid transparent;
+}
+
+.back-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    background: linear-gradient(135deg, #2980b9, #2471a3);
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    border: 2px solid transparent;
+}
+
+.logout-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+
 /* Common modal style */
 .modal {
     display: none;

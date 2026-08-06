@@ -1,7 +1,12 @@
-import { formatDate } from './auth.js';
+import {
+  formatDate,
+  getUserPaymentPhone
+} from './auth.js';
 
 // WhatsApp message generation
-function generateWhatsAppMessage(customer, billing) {
+async function generateWhatsAppMessage(customer, billing) {
+  const paymentPhone = await getUserPaymentPhone();
+
   if (!billing) {
     return encodeURIComponent('Hello ${customer.name}! Your water bill is ready.');
   }
@@ -12,16 +17,16 @@ function generateWhatsAppMessage(customer, billing) {
   const previousBalance = totalDue - currentBillAmount;
 
   let message = `💧 *Water Bill Receipt* 💧
-      
+
   *Customer:* ${customer.name}
   *Meter No:* ${customer.meter_number}
   *Bill Date:* ${formatDate(billing.date)}
-  
+
   *Meter Readings:*
   - Previous: ${billing.previousReading} units
   - Current: ${billing.currentReading} units
   - Consumption: ${billing.consumption} units
-  
+
   *Current Bill Charges:*
   - Water Usage (${billing.consumption} units × Ksh ${billing.unitCost}): Ksh ${(billing.consumption * billing.unitCost).toFixed(2)}
   - Monthly Charge: Ksh ${billing.monthlyCharge}
@@ -36,10 +41,10 @@ function generateWhatsAppMessage(customer, billing) {
   message += `\n\n*Total Amount Due: Ksh ${totalDue.toFixed(2)}*`;
 
   // Add payment instructions
-  message += `\n\nPlease make your payment as soon as possible. 
+  message += `\n\nPlease make your payment as soon as possible.
   Pochi La Biashara
-  0721416688
-  
+  ${paymentPhone}
+
   Thank you!`;
 
   return encodeURIComponent(message);

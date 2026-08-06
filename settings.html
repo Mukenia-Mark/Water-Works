@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings – Water-Works</title>
+  <link rel="stylesheet" href="/css/settings.css">
+  <link rel="stylesheet" href="/css/shared.css">
+</head>
+<body>
+<div class="container">
+  <div class="nav-bar">
+    <button id="backBtn" class="back-btn">Back</button>
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+  </div>
+
+  <!-- Header matches other pages -->
+  <header>
+    <h1>Settings</h1>
+    <p class="subtitle">Configure your payment details for WhatsApp messages</p>
+  </header>
+
+  <!-- Form uses the same white-box style as billing form -->
+  <div class="settings-form">
+    <div class="form-group">
+      <label for="paymentPhone">Payment Phone Number</label>
+      <input type="tel" id="paymentPhone" placeholder="e.g., 0712345678 or +254712345678">
+      <small>This number will appear in WhatsApp messages as the payment option.</small>
+    </div>
+    <button id="saveSettingsBtn" class="save-btn">Save Settings</button>
+  </div>
+
+  <div id="message" class="message"></div>
+</div>
+
+<script type="module" src="/js/settings.js"></script>
+</body>
+</html>

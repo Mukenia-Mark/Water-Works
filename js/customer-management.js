@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Navigation functionality
   document.getElementById('logoutBtn').addEventListener('click', logout);
 
+  document.getElementById('settingsBtn').addEventListener('click', function () {
+    window.location.href = 'settings.html';
+  });
+
   document.getElementById('newCustomerBtn').addEventListener('click', function() {
     window.location.href = 'new-customer.html';
   });
@@ -181,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    const message = generateWhatsAppMessage(customer, lastBilling);
+    const message = await generateWhatsAppMessage(customer, lastBilling);
     sendWhatsAppMessage(customer.contact, message);
   }
 
@@ -385,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
         </div>
-        
+
         <div class="actions-section">
           <div class="quick-actions">
             <button id="editCustomerBtn" class="edit-btn">
@@ -433,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <label for="editMonthlyCharge">Monthly Charge:</label>
           <select id="editMonthlyCharge" class="edit-input">
             <option value="200" ${customer.monthly_charge === 200 ? 'selected' : ''}>Minimum Charge (200)</option>
-            <option value="100" ${customer.monthly_charge === 100 ? 'selected' : ''}>Standing Charge (100)</option> 
+            <option value="100" ${customer.monthly_charge === 100 ? 'selected' : ''}>Standing Charge (100)</option>
           </select>
         </div>
         <div class="edit-actions" style="margin-top: 20px; text-align: center;">
@@ -539,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return `
     <div class="payment-section ${isOverDue ? 'overdue' : ''}">
       <h4>Payment Management ${isOverDue ? '📅' : ''}</h4>
-      
+
       <div class="payment-summary">
         <div>
           <strong>Total Due:</strong> Ksh ${payment.amountDue}
@@ -561,13 +565,13 @@ document.addEventListener('DOMContentLoaded', function() {
           <strong>Days Overdue</strong> ${daysLate > 0 ? daysLate + ' days' : 'On time'}
         </div>
       </div>
-      
+
      <!-- Partial Payment Form -->
       <div class="payment-form">
         <h5>Record Payment</h5>
         <div class="payment-form-group">
           <label>Payment Amount (Ksh):</label>
-          <input type="number" id="paymentAmount" class="payment-input" 
+          <input type="number" id="paymentAmount" class="payment-input"
                  value="${payment.balance}" min="0" max="${payment.balance}"
                  placeholder="Enter payment amount">
         </div>
@@ -597,14 +601,14 @@ document.addEventListener('DOMContentLoaded', function() {
             Record Payment
           </button>
           ${payment.balance > 0 ? `
-            <button class="payment-btn success" 
+            <button class="payment-btn success"
                     onclick="window.recordFullPaymentForBill('${customer.meter_number}', ${billingIndex})">
               Mark as Fully Paid
             </button>
           ` : ''}
         </div>
       </div>
-      
+
       <!-- Payment History -->
       ${payment.payments.length > 0 ? `
         <div class="payment-history">

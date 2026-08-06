@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const sendWhatsApp = confirm(`Billing record saved successfully!\nUnits Used: ${consumption}\nCurrent Bill: Ksh ${totalCost.toFixed(2)}\n${previousBalance > 0 ? `Previous Balance: Ksh ${previousBalance.toFixed(2)}\n` : ''}Total Due: Ksh ${totalDue.toFixed(2)}\n\nWould you like to send the receipt via WhatsApp?`);
 
         if (sendWhatsApp) {
-          const message = generateWhatsAppMessage(customer, billingRecord);
+          const message = await generateWhatsAppMessage(customer, billingRecord);
           sendWhatsAppMessage(customer.contact, message);
         }
 

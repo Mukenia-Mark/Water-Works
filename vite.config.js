@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
           main: './index.html',
           customerManagement: './customer-management.html',
           billing: './bill-customer.html',
-          newCustomer: './new-customer.html'
+          newCustomer: './new-customer.html',
+          settings:'./settings.html'
         }
       }
     },

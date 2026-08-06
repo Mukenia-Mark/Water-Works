@@ -389,6 +389,53 @@ async function checkCustomerSchema() {
   }
 }
 
+// Get current user's settings
+async function getUserSettings() {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error && error.code !== 'PGRST116') {
+    throw error;
+  }
+
+  return data || {};
+}
+
+// Update or insert user settings
+async function updateUserSettings(settings) {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .upsert({
+      'user_id': user.id,
+      ...settings,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Get payment phone for current user (convenience)
+async function getUserPaymentPhone() {
+  const settings = await getUserSettings();
+  return settings.payment_phone || '';
+}
+
 // Initialize auth when module loads
 initAuth();
 
@@ -408,5 +455,8 @@ export {
   formatDate,
   getTodayDate,
   getTodayDateForInput,
-  calculateDueDate
+  calculateDueDate,
+  getUserSettings,
+  updateUserSettings,
+  getUserPaymentPhone
 };
