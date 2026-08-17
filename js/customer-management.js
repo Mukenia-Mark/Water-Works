@@ -774,6 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('customerDetails').innerHTML = `
         <div class="customer-details">
           <h3>Bill Details for ${customer.name}</h3>
+          <button class="delete-btn" onclick="window.deleteBill('${customer.meter_number}', ${billingIndex})">Delete Bill</button>
           <div class="detail-grid">
             <div class="detail-item">
               <span class="detail-label">Bill Date:</span>
@@ -807,6 +808,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  async function deleteBill(meterNumber, billingIndex) {
+      if (!confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const customers = await getCustomers();
+        const customer = customers.find(c => c.meter_number === meterNumber);
+
+        if (!customer) {
+          alert('Customer not found!');
+          return;
+        }
+
+        // Remove the specific bill from the array
+        customer.billing_history.splice(billingIndex, 1);
+
+        // Update the customer record in the database
+        await updateCustomer(customer.id, {
+          billing_history: customer.billing_history
+        });
+
+        alert('Bill deleted successfully!');
+
+        // Go back to the main customer details view
+        viewCustomerDetails(window.currentCustomerIndex);
+
+      } catch (error) {
+        console.error('Error deleting bill:', error);
+        alert('Error deleting bill: ' + error.message);
+      }
+    }
+
   // Load customers on page load
   loadCustomers();
 
@@ -814,4 +848,5 @@ document.addEventListener('DOMContentLoaded', function() {
   window.recordPartialPaymentForBill = recordPartialPaymentForBill;
   window.recordFullPaymentForBill = recordFullPaymentForBill;
   window.viewBillDetails = viewBillDetails;
+  window.deleteBill = deleteBill;
 });
