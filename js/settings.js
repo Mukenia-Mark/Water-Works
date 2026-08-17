@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     const settings = await getUserSettings();
     document.getElementById('paymentPhone').value = settings.payment_phone || '';
-    document.getElementById('businessName').value = settings.business_name || '';
   } catch (err) {
     console.error('Error loading settings:', err);
   }
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Save settings
   document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
     const paymentPhone = document.getElementById('paymentPhone').value.trim();
-    const businessName = document.getElementById('businessName').value.trim();
 
     if (!paymentPhone) {
       showMessage('Please enter a payment phone number.', 'error');
@@ -29,8 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     try {
       await updateUserSettings({
-        payment_phone: paymentPhone,
-        business_name: businessName
+        payment_phone: paymentPhone
       });
       showMessage('Settings saved successfully!', 'success');
     } catch (err) {

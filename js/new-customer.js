@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('newCustomerContact').value = '';
     document.getElementById('newCustomerMeter').value = '';
     document.getElementById('initialReading').value = '';
-    document.getElementById('minimumCharge').checked = true;
   });
 
   // Save customer functionality
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const contact = document.getElementById('newCustomerContact').value;
     const meterNumber = document.getElementById('newCustomerMeter').value;
     const initialReading = document.getElementById('initialReading').value;
-    const monthlyCharge = document.querySelector('input[name="monthlyCharge"]:checked').value;
 
     if (name && contact && meterNumber && initialReading) {
       try {
@@ -49,8 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
           name: name,
           contact: contact,
           meter_number: meterNumber,
-          monthly_charge: parseInt(monthlyCharge),
-          last_reading: parseInt(initialReading),
           last_reading_date: getTodayDate(), // Today's date in dd/mm/yyyy
           billing_history: [] // Initialize empty billing history
         };
@@ -64,8 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('newCustomerName').value = '';
         document.getElementById('newCustomerContact').value = '';
         document.getElementById('newCustomerMeter').value = '';
-        document.getElementById('initialReading').value = '';
-        document.getElementById('minimumCharge').checked = true;
 
         // Redirect to customer management page
         window.location.href = 'customer-management.html';

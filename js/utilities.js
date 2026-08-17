@@ -29,7 +29,6 @@ async function generateWhatsAppMessage(customer, billing) {
 
   *Current Bill Charges:*
   - Water Usage (${billing.consumption} units × Ksh ${billing.unitCost}): Ksh ${(billing.consumption * billing.unitCost).toFixed(2)}
-  - Monthly Charge: Ksh ${billing.monthlyCharge}
   - *Current Bill Total: Ksh ${currentBillAmount.toFixed(2)}*`;
 
   // Add previous balances if any
