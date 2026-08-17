@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const currentReadingInput = document.getElementById('currentReading');
   const readingDateInput = document.getElementById('readingDate');
   const customerNameInput = document.getElementById('customerName');
+  const monthlyChargeInput = document.getElementById('monthlyCharge');
 
   // Set default date to today (in yyyy-mm-dd format for input)
   readingDateInput.value = getTodayDateForInput();
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (customer) {
         customerNameInput.value = customer.name;
+        monthlyChargeInput.value = customer.monthly_charge;
 
         // Use last reading if available, otherwise use initial reading
         const lastBilling = customer.billing_history && customer.billing_history.length > 0
@@ -67,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentReadingInput.focus();
       } else {
         customerNameInput.value = '';
+        monthlyChargeInput.value = '';
         previousReadingInput.value = '';
         previousReadingDateSpan.textContent = 'Customer not found';
       }
@@ -97,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     previousReadingDateSpan.textContent = '';
     currentReadingInput.value = '';
     customerNameInput.value = '';
+    monthlyChargeInput.value = '';
   });
 
   function validateMeterReading(reading) {
@@ -131,7 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const readingDate = readingDateInput.value;
     const previousReading = previousReadingInput.value;
     const currentReading = currentReadingInput.value;
-    const unitCost = 150;
+    const unitCost = 100;
+    const monthlyCharge = parseInt(monthlyChargeInput.value);
 
     if (!validateMeterReading(currentReading)) {
       alert('Please enter valid meter reading (0 - 999999)');
@@ -168,12 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const consumption = currReading - prevReading;
 
         // Calculate total charge
-        let totalCost;
-        if (consumption < 2) {
-          totalCost = 200;
-        } else {
-          totalCost = (consumption * unitCost);
-        }
+        const totalCost = (consumption * unitCost) + parseInt(monthlyCharge);
 
         // Calculate previous balance
         const previousBalance = calculatePreviousBalance(customer, null);
@@ -186,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
           currentReading: currReading,
           consumption: consumption,
           unitCost: unitCost,
+          monthlyCharge: monthlyCharge,
           totalCost: totalCost,
 
           payment: {
@@ -224,6 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         previousReadingDateSpan.textContent = '';
         currentReadingInput.value = '';
         customerNameInput.value = '';
+        monthlyChargeInput.value = '';
 
       } catch(error) {
         console.error('Error saving billing record:', error);

@@ -8,8 +8,8 @@
           content="default-src 'self';
                script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
                style-src 'self' 'unsafe-inline';
-               connect-src 'self' https://iynwipwpgphibhrgiysy.supabase.co https://wa.me https://cdn.jsdelivr.net;">
-    <title>New Customer</title>
+               connect-src 'self' https://bhnyabnvhhgshkzjduvr.supabase.co https://wa.me https://cdn.jsdelivr.net;">
+    <title>Water-Works - New Customer</title>
     <link rel="stylesheet" href="/css/billing.css">
     <link rel="stylesheet" href="/css/shared.css">
 </head>
@@ -46,6 +46,24 @@
             <div class="form-group">
                 <label for="initialReading">Initial Meter Reading</label>
                 <input type="number" id="initialReading" placeholder="Enter initial reading" required>
+            </div>
+
+            <div class="form-group">
+                <label>Monthly Charge</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="minimumCharge" name="monthlyCharge" value="200" checked>
+                        <label for="minimumCharge">Minimum Charge (200)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="standingCharge" name="monthlyCharge" value="100">
+                        <label for="standingCharge">Standing Charge (100)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="noCharge" name="monthlyCharge" value="0">
+                        <label for="noCharge">No Charge (0)</label>
+                    </div>
+                </div>
             </div>
         </div>
 

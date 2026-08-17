@@ -245,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <td data-label="Name">${sanitizeHTML(customer.name)}</td>
         <td data-label="Contact">${sanitizeHTML(customer.contact)}</td>
         <td data-label="Meter Number">${sanitizeHTML(customer.meter_number)}</td>
+        <td data-label="Monthly Charge">${sanitizeHTML(customer.monthly_charge)}</td>
         <td data-label="Last Reading">${sanitizeHTML(lastReading || 'No reading')}</td>
         <td data-label="Last Reading Date">${sanitizeHTML(lastReadingDate || 'No date')}</td>
         <td data-label="Actions" class="actions">
@@ -359,6 +360,10 @@ document.addEventListener('DOMContentLoaded', function() {
               <span class="detail-value">${customer.meter_number}</span>
             </div>
             <div class="detail-item">
+              <span class="detail-label">Monthly Charge:</span>
+              <span class="detail-value">Ksh ${customer.monthly_charge}</span>
+            </div>
+            <div class="detail-item">
               <span class="detail-label">Last Reading:</span>
               <span class="detail-value">${lastBilling ? lastBilling.currentReading : customer.last_reading || 'No reading'}</span>
             </div>
@@ -428,6 +433,13 @@ document.addEventListener('DOMContentLoaded', function() {
           <label for="editContact">Contact:</label>
           <input type="text" id="editContact" value="${customer.contact}" class="edit-input"/>
         </div>
+        <div class="form-group">
+          <label for="editMonthlyCharge">Monthly Charge:</label>
+          <select id="editMonthlyCharge" class="edit-input">
+            <option value="200" ${customer.monthly_charge === 200 ? 'selected' : ''}>Minimum Charge (200)</option>
+            <option value="100" ${customer.monthly_charge === 100 ? 'selected' : ''}>Standing Charge (100)</option>
+          </select>
+        </div>
         <div class="edit-actions" style="margin-top: 20px; text-align: center;">
           <button id="saveEditBtn" class="save-btn" style="background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">Save Changes</button>
           <button id="cancelEditBtn" class="cancel-btn" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">Cancel</button>
@@ -447,6 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const newName = document.getElementById('editName').value;
     const newContact = document.getElementById('editContact').value;
+    const newMonthlyCharge = document.getElementById('editMonthlyCharge').value;
 
     // Basic validation
     if (!newName || !newContact) {
@@ -457,7 +470,8 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       await updateCustomer(customer.id, {
         name: newName,
-        contact: newContact
+        contact: newContact,
+        monthly_charge: parseInt(newMonthlyCharge)
       });
 
       // Show success message

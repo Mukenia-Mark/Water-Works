@@ -244,6 +244,7 @@ async function createCustomer(customerData) {
                     name: customerData.name,
                     contact: customerData.contact,
                     meter_number: customerData.meter_number,
+                    monthly_charge: customerData.monthly_charge,
                     last_reading: customerData.last_reading,
                     last_reading_date: customerData.last_reading_date,
                     billing_history: customerData.billing_history || []
@@ -271,6 +272,8 @@ async function updateCustomer(customerId, updates) {
         dbUpdates.last_reading_date = updates[key];
       } else if (key === 'meterNumber') {
         dbUpdates.meter_number = updates[key];
+      } else if (key === 'monthlyCharge') {
+        dbUpdates.monthly_charge = updates[key];
       } else {
         dbUpdates[key] = updates[key];
       }
@@ -286,6 +289,21 @@ async function updateCustomer(customerId, updates) {
     return data[0];
   } catch (error) {
     console.error('Error updating customer:', error);
+    throw error;
+  }
+}
+
+async function deleteCustomer(customerId) {
+  try {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', customerId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
     throw error;
   }
 }
@@ -432,6 +450,7 @@ export {
   saveCustomers,
   createCustomer,
   updateCustomer,
+  deleteCustomer,
   deleteCustomerById,
   formatDate,
   getTodayDate,
