@@ -67,7 +67,7 @@ function calculateTotalDueForCustomer(customer) {
 }
 
 // WhatsApp message sending
-function sendWhatsAppMessage(phoneNumber, message) {
+function sendWhatsAppMessage(phoneNumber, message, targetTab = null) {
   // Clean phone number (remove dashes, spaces, etc.)
   const cleanPhone = phoneNumber.replace(/\D/g, '');
 
@@ -80,7 +80,12 @@ function sendWhatsAppMessage(phoneNumber, message) {
   }
 
   const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
-  window.open(whatsappUrl, '_blank');
+
+  if (targetTab) {
+    targetTab.location.href = whatsappUrl;
+  } else {
+    window.open(whatsappUrl, `_blank`);
+  }
 }
 
 // HTML sanitization

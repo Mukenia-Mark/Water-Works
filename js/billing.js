@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (sendWhatsApp) {
           const message = await generateWhatsAppMessage(customer, billingRecord);
-          sendWhatsAppMessage(customer.contact, message);
+          sendWhatsAppMessage(customer.contact, message, blankTab);
         }
 
         // Clear form

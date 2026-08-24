@@ -76,14 +76,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // WhatsApp button in modal
     if (e.target && e.target.id === 'whatsappBtn') {
       e.preventDefault();
-      sendWhatsAppFromModal();
+      const blankTab = window.open(``, `_blank`);
+      sendWhatsAppFromModal(blankTab);
     }
 
     // WhatsApp buttons in table
     if (e.target && e.target.classList.contains('whatsapp-btn')) {
       e.preventDefault();
+      const blankTab = window.open(``, `_blank`);
       const index = parseInt(e.target.getAttribute('data-index'));
-      sendWhatsAppFromTable(index);
+      sendWhatsAppFromTable(index, blankTab);
     }
 
     // View buttons in table
@@ -134,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // WhatsApp functionality functions
-  async function sendWhatsAppFromModal() {
+  async function sendWhatsAppFromModal(targetTab) {
     try {
       const customers = await getCustomers();
       const customer = customers[window.currentCustomerIndex];
@@ -144,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      await sendCustomerWhatsApp(customer);
+      await sendCustomerWhatsApp(customer, targetTab);
     } catch (error) {
       console.error('Error sending WhatsApp:', error);
       alert('Error: ' + error.message);
@@ -152,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Unified WhatsApp function for table
-  async function sendWhatsAppFromTable(index) {
+  async function sendWhatsAppFromTable(index, targetTab) {
     try {
       const customers = await getCustomers();
       const customer = customers[index];
@@ -162,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      await sendCustomerWhatsApp(customer);
+      await sendCustomerWhatsApp(customer, targetTab);
     } catch (error) {
       console.error('Error sending WhatsApp:', error);
       alert('Error: ' + error.message);
@@ -170,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Common WhatsApp sending logic
-  async function sendCustomerWhatsApp(customer) {
+  async function sendCustomerWhatsApp(customer, targetTab) {
     if (!customer.contact) {
       alert('Customer contact information is missing!');
       return;
@@ -186,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const message = await generateWhatsAppMessage(customer, lastBilling);
-    sendWhatsAppMessage(customer.contact, message);
+    sendWhatsAppMessage(customer.contact, message, targetTab);
   }
 
   async function loadCustomers() {
