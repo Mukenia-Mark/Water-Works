@@ -109,19 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Helper function to calculate previous balance
-  function calculatePreviousBalance(customer, currentBilling) {
-    if (!customer.billing_history || customer.billing_history.length <= 1) {
+  function calculatePreviousBalance(customer) {
+    if (!customer.billing_history || customer.billing_history.length === 0) {
       return 0;
     }
 
     let previousBalance = 0;
-    customer.billing_history.forEach((bill, index) => {
-      // Skip the current bill (last one)
-      if (index === customer.billing_history.length - 1) return;
-
-      if (bill.payment && bill.payment.balance > 0) {
+    customer.billing_history.forEach((bill) => {
+      if (bill.payment) {
         previousBalance += bill.payment.balance;
-      } else if (!bill.payment) {
+      } else {
         previousBalance += bill.totalCost;
       }
     });
@@ -190,17 +187,39 @@ document.addEventListener('DOMContentLoaded', function() {
           totalCost: totalCost,
 
           payment: {
-            status: 'pending', // pending, partial, paid
+            status: previousBalance <= -totalCost ? 'paid' : 'pending', // pending, partial, paid
             amountDue: totalCost,
-            amountPaid: 0,
-            balance: totalCost,
+            amountPaid: previousBalance < 0 ? Math.abs(previousBalance) : 0,
+            balance: previousBalance < 0 ? totalCost + previousBalance : totalCost,
             dueDate: calculateDueDate(readingDate),
-            payments: [] // Array for multiple payments
+            payments: previousBalance < 0 ? [{
+              date: readingDate,
+              amount: Math.abs(previousBalance),
+              method: 'Credit Applied',
+              notes: 'Previous overpayment applied to new bill.'
+            }] : []
           }
         };
 
         // Add to customer's billing history
         let billingHistory = customer.billing_history || [];
+
+        if (previousBalance < 0) {
+                  billingHistory.forEach(bill => {
+                    if (bill.payment && bill.payment.balance < 0) {
+                      bill.payment.balance = 0;
+                      bill.payment.status = 'paid';
+
+                      bill.payment.payments.push({
+                        date: readingDate,
+                        amount: 0,
+                        method: 'CREDIT_TRANSFER',
+                        notes: 'Credit applied to next bill'
+                      });
+                    }
+                  });
+                }
+
         billingHistory.push(billingRecord);
 
         // Update customer in Supabase

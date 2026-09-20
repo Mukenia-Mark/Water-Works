@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const totalDue = customer.billing_history.reduce((total, bill) => {
-      if (bill.payment && bill.payment.balance > 0) {
+      if (bill.payment) {
         return total + bill.payment.balance;
       }
       // If no payment object, assume full amount is due
